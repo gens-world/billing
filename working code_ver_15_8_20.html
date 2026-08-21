@@ -1,0 +1,3987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gens world || Fashion girls</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f8f9fa; color: #333; font-size: 0.85rem; }
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.5s ease; }
+        .login-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); text-align: center; }
+        .container { display: none; max-width: 1400px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); overflow: hidden; }
+        header { background-color: #4B5FFF; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.25rem; margin: 0; }
+        
+        nav.tabs { background-color: #4B5FFF; display: flex; flex-wrap: wrap; }
+        nav.tabs button { flex-grow: 1; padding: 10px 8px; border: none; background: #4B5FFF; color: white; font-size: 0.85rem; cursor: pointer; transition: background-color 0.3s; border-bottom: 3px solid transparent; }
+        nav.tabs button:hover { background-color: #3b49e0; }
+        nav.tabs button.active { background-color: white; border-bottom: 3px solid #4B5FFF; font-weight: bold; color: #4B5FFF; }
+        
+        section.tab-content { padding: 15px; display: none; }
+        section.tab-content.active { display: block; }
+
+        input[type="text"], input[type="number"], input[type="date"], input[type="file"], select, textarea { width: 100%; padding: 6px 8px; margin: 3px 0 10px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.82rem; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        label { font-weight: 600; display: block; margin-bottom: 2px; font-size: 0.8rem; }
+
+        button { background-color: #4B5FFF; color: white; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.82rem; transition: background-color 0.3s; margin-top: 5px; }
+        button:hover { background-color: #3b49e0; }
+        button:disabled { background-color: #b0b4b8; cursor: not-allowed; }
+        .secondary-btn { background-color: #6c757d; }
+        .secondary-btn:hover { background-color: #5a6268; }
+        .success-btn { background-color: #28a745; }
+        .success-btn:hover { background-color: #218838; }
+        .danger-btn { background-color: #d9534f; }
+        .danger-btn:hover { background-color: #c9302c; }
+
+        .flex-container { display: flex; gap: 12px; }
+        .flex-item { flex: 1; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        
+        .dashboard-card { background: #f1f1f1; padding: 10px 12px; border-radius: 6px; text-align: center; }
+        .grid-4 > .dashboard-card:nth-child(1) { background: linear-gradient(135deg,#6f42c1,#9b59b6); color:#fff; } .grid-4 > .dashboard-card:nth-child(2) { background: linear-gradient(135deg,#007bff,#17a2b8); color:#fff; } .grid-4 > .dashboard-card:nth-child(3) { background: linear-gradient(135deg,#28a745,#20c997); color:#fff; } .grid-4 > .dashboard-card:nth-child(4) { background: linear-gradient(135deg,#fd7e14,#ffc107); color:#fff; }
+        .grid-4 > .dashboard-card label, .grid-4 > .dashboard-card .value, .grid-4 > .dashboard-card .sub-value { color:#fff !important; }
+        .cart-qty-controls { display:inline-flex; align-items:center; justify-content:flex-end; gap:3px; white-space:nowrap; }
+        .cart-qty-input { width:32px !important; min-width:32px; max-width:32px; height:24px; text-align:center; padding:2px 1px !important; margin:0 !important; box-sizing:border-box; }
+        .dashboard-card label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dashboard-card .value { font-size: 1.15rem; font-weight: bold; color: #4B5FFF; margin-top: 4px; }
+        .dashboard-card .sub-value { font-size: 0.75rem; color: #555; margin-top: 2px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
+        th { background-color: #e9ecef; font-weight: 600; font-size: 0.8rem; }
+        tr:hover { background-color: #f5f5f5; }
+        .scrollable { overflow-x: auto; overflow-y: auto; }
+
+        /* Align numbers to right globally */
+        td.num-align, th.num-align { text-align: right !important; }
+
+        /* Vertical borders for Overall Report table */
+        table.overall-vlines th, table.overall-vlines td { border-right: 1px solid #ccc; }
+        table.overall-vlines th:last-child, table.overall-vlines td:last-child { border-right: none; }
+
+        tr.row-sales { background-color: #e8f5e9 !important; }
+        tr.row-purchase { background-color: #ffebee !important; }
+        tr.weekend-sunday td { color: #d9534f !important; }
+        tr.weekend-saturday td { color: #c59a00 !important; }
+        tr.weekend-sunday td button, tr.weekend-saturday td button { color: white !important; }
+        th.header-sales { background-color: #28a745 !important; color: white !important; }
+        th.header-purchase { background-color: #dc3545 !important; color: white !important; }
+
+        #invoiceArea { padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-top: 10px; }
+        .discount-section { display: flex; gap: 12px; margin-top: 10px; }
+        .discount-section input { width: 100%; }
+
+        .warning { color: #d9534f; font-weight: bold; margin-bottom: 8px; font-size: 0.8rem; }
+        .success { color: #5cb85c; font-weight: bold; margin-bottom: 8px; font-size: 0.8rem; }
+
+        /* A6 Print Format Settings[cite: 2] */
+        @page {
+            size: A6 portrait;
+            margin: 5mm;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #receiptPrintContainer, #receiptPrintContainer * { visibility: visible; }
+            #receiptPrintContainer { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 105mm; 
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                font-size: 11px; 
+                padding: 5mm; 
+                color: #000; 
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay" class="login-overlay">
+    <div class="login-box">
+        <h2 style="font-size: 1.2rem; margin-bottom: 15px;">Gens world || Fashion girls Login</h2>
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter Username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter Password" required>
+
+        <button id="loginButton">Login</button>
+    </div>
+</div>
+
+<div id="reset-confirm-overlay" class="login-overlay" style="display:none;opacity:1;z-index:1100;">
+    <div class="login-box">
+        <h2 style="font-size:1.2rem;margin-bottom:15px;">Confirm Reset</h2>
+        <p style="margin-bottom:12px;">This will permanently clear all saved POS data on this device.</p>
+        <label for="resetPassword">Confirmation Password</label>
+        <input type="password" id="resetPassword" placeholder="Enter login password" required>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
+          <button id="confirmResetButton" style="background:#dc3545;color:white;">Confirm Reset</button>
+          <button id="cancelResetButton" type="button">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>Gens world || Fashion girls</h1>
+        <div style="display:flex;align-items:center;gap:8px;"><div id="statusMessage" style="color:white;font-weight:600;"></div><button id="resetButton" type="button" style="background:#dc3545;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">Reset</button></div>
+    </header>
+
+    <nav class="tabs">
+        <button data-tab="dashboard" class="active">Dashboard</button>
+        <button data-tab="invoice">New Sale</button>
+        <button data-tab="expenses">Expenses</button>
+        <button data-tab="offers">Offers</button>
+        <button data-tab="inventory">Inventory Setup</button>
+        <button data-tab="stock">Purchase History</button>
+        <button data-tab="sales">Sales History</button>
+        <button data-tab="dataImport">Data Import</button>
+        <button data-tab="report">Reports</button>
+    </nav>
+
+    <section id="dashboard" class="tab-content active" aria-label="Dashboard">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Dashboard Overview</h2>
+        
+        <div class="grid-4">
+            <div id="totalLifetimeRevenueCard" class="dashboard-card">
+                <label>Total Revenue</label>
+                <div class="value">₹0.00</div>
+                <div class="sub-value" id="lifetimeProfitText">(Profit: ₹0.00)</div>
+            </div>
+            <div id="totalStockUnitsCard" class="dashboard-card">
+                <label>STOCK UNITS</label>
+                <div class="value">0 / 0</div>
+                <div class="sub-value">Current Stock / Total Purchased</div>
+            </div>
+            <div id="salesTodayCard" class="dashboard-card" style="background-color: #28a745; color: white;">
+                <label style="color: white;">Sales Today</label>
+                <div class="value" style="color: white;">₹0.00</div>
+                <div class="sub-value" id="salesTodayProfitText" style="color: #f8f9fa;">(Profit: ₹0.00)</div>
+            </div>
+            <div id="salesYesterdayCard" class="dashboard-card" style="background-color: #17a2b8; color: white;">
+                <label style="color: white;">Sales Yesterday</label>
+                <div class="value" style="color: white;">₹0.00</div>
+                <div class="sub-value" id="salesYesterdayProfitText" style="color: #f8f9fa;">(Profit: ₹0.00)</div>
+            </div>
+        </div>
+
+        <h3 style="font-size: 0.95rem; margin: 15px 0 8px 0;">Performance Breakdown</h3>
+        <div class="grid-4">
+            <div id="highestPerDayCard" class="dashboard-card">
+                <label>Highest Per Day</label>
+                <div class="sub-value" id="highestDayDate">Date: -</div>
+                <div class="value" id="highestDaySales">Sales: ₹0.00</div>
+                <div class="sub-value" id="highestDayProfit" style="color: #28a745; font-weight: bold;">Profit: ₹0.00</div>
+            </div>
+            <div id="lowestPerDayCard" class="dashboard-card">
+                <label>Lowest Per Day</label>
+                <div class="sub-value" id="lowestDayDate">Date: -</div>
+                <div class="value" id="lowestDaySales">Sales: ₹0.00</div>
+                <div class="sub-value" id="lowestDayProfit" style="color: #28a745; font-weight: bold;">Profit: ₹0.00</div>
+            </div>
+            <div id="currentMonthCard" class="dashboard-card">
+                <label>Current Month</label>
+                <div class="sub-value" id="currentMonthName">Month: -</div>
+                <div class="value" id="currentMonthSales">Sales: ₹0.00</div>
+                <div class="sub-value" id="currentMonthProfit" style="color: #28a745; font-weight: bold;">Profit: ₹0.00</div>
+            </div>
+            <div id="previousMonthCard" class="dashboard-card">
+                <label>Previous Month</label>
+                <div class="sub-value" id="previousMonthName">Month: -</div>
+                <div class="value" id="previousMonthSales">Sales: ₹0.00</div>
+                <div class="sub-value" id="previousMonthProfit" style="color: #28a745; font-weight: bold;">Profit: ₹0.00</div>
+            </div>
+        </div>
+        
+        <div class="flex-container" style="margin-top: 15px;">
+            <div class="flex-item"><canvas id="dailySalesChart"></canvas></div>
+            <div class="flex-item"><canvas id="monthlySalesChart"></canvas></div>
+        </div>
+    </section>
+
+    <section id="invoice" class="tab-content" aria-label="New Sale">
+        <h2 style="display: flex; justify-content: space-between; font-size: 1.1rem; margin-top: 0;">
+            New Sale / Billing
+            <span>Selected Date Total Sold: ₹<span id="soldTodayTotal">0.00</span></span>
+        </h2>
+        
+        <div id="invoiceArea"></div>
+    </section>
+
+    <section id="expenses" class="tab-content" aria-label="Expenses">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Manage Store Expenses</h2>
+        <div class="flex-container">
+            <div class="flex-item" style="flex: 1;">
+                <h3>Add New Expense</h3>
+                <form id="expenseForm">
+                    <label for="expenseDate">Date</label>
+                    <input type="date" id="expenseDate" required>
+
+                    <label for="expenseAmount">Amount (₹)</label>
+                    <input type="number" id="expenseAmount" min="0.01" step="0.01" value="100" required>
+
+                    <label for="expenseRemark">Remark</label>
+                    <input type="text" id="expenseRemark" value="TEA, FLOWER" required placeholder="e.g., Tea, Flower, Snacks">
+
+                    <button type="submit" id="btnSaveExpense">Add Expense</button>
+                </form>
+            </div>
+            <div class="flex-item" style="flex: 2;">
+                <h3>Expenses History</h3>
+                <div class="scrollable" style="max-height: 400px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th class="num-align">Amount</th>
+                                <th>Remark</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody">
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Total Expenses:</th>
+                                <th id="totalExpenseAmount" class="num-align">₹0.00</th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="offers" class="tab-content" aria-label="Offers">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Manage Item Offers & Margins</h2>
+        <div class="flex-container">
+            <div class="flex-item" style="flex: 1;">
+                <h3>Add / Update Offer</h3>
+                <form id="offerForm">
+                    <label for="offerItemCode">Select Item Code</label>
+                    <select id="offerItemCode" required>
+                        <option value="">-- Select Item Code --</option>
+                    </select>
+
+                    <label for="offerItemName">Product Name</label>
+                    <input type="text" id="offerItemName" readonly style="background-color: #e9ecef;">
+
+                    <div style="display: flex; gap: 8px;">
+                        <div style="flex: 1;">
+                            <label for="offerCostPrice">Cost Price (CP)</label>
+                            <input type="text" id="offerCostPrice" readonly style="background-color: #e9ecef;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="offerOriginalPrice">Selling Price (SP)</label>
+                            <input type="text" id="offerOriginalPrice" readonly style="background-color: #e9ecef;">
+                        </div>
+                    </div>
+
+                    <label for="offerQty">Required Qty for Offer</label>
+                    <input type="number" id="offerQty" min="1" value="1" required>
+
+                    <label for="offerPrice">Offer Price (Total for specified Qty)</label>
+                    <input type="number" id="offerPrice" min="0" step="0.01" placeholder="Enter total offer price for Qty" required>
+
+                    <div id="offerProfitPreview" style="background-color: #f1f3f5; padding: 10px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #4B5FFF;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 3px;">
+                            <span>Standard Price Total:</span> <strong id="previewStdTotal">₹0.00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 3px;">
+                            <span>Cost Price Total (CP):</span> <strong id="previewCpTotal">₹0.00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 3px;">
+                            <span>Discount Given:</span> <strong id="previewDiscount" style="color: #d9534f;">₹0.00</strong>
+                        </div>
+                        <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ccc;">
+                        <div style="display:flex; justify-content:space-between; font-size: 0.9rem;">
+                            <span>Expected Profit:</span> <strong id="previewProfit" style="color: #28a745;">₹0.00</strong>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnSaveOffer">Save Offer</button>
+                </form>
+            </div>
+            
+            <div class="flex-item" style="flex: 2;">
+                <h3>Active Product Offers</h3>
+                <div class="scrollable" style="max-height: 400px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Code</th>
+                                <th>Product Name</th>
+                                <th class="num-align">Offer Qty</th>
+                                <th class="num-align">Total CP</th>
+                                <th class="num-align">Standard SP</th>
+                                <th class="num-align">Offer Price</th>
+                                <th class="num-align">Profit</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="offersTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="inventory" class="tab-content" aria-label="Inventory Setup">
+        <div class="flex-container">
+            <div class="flex-item" style="flex: 2;">
+                <h2 style="font-size: 1.1rem; margin-top: 0;">Product & Inventory Entry</h2>
+                <form id="productForm">
+                    <div class="grid-3">
+                        <div>
+                            <label for="uniqueCode">Unique Code/Barcode</label>
+                            <input type="text" id="uniqueCode" placeholder="Auto-generated if empty" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="productName">Product Name</label>
+                            <input type="text" id="productName" placeholder="e.g., Slim Fit Jeans M" required>
+                        </div>
+                        <div>
+                            <label for="productCategory">Category</label>
+                            <input type="text" id="productCategory" list="categoriesDatalist" placeholder="e.g., Pant">
+                        </div>
+                    </div>
+                    <div class="grid-3">
+                        <div>
+                            <label for="itemType">Item Type</label>
+                            <select id="itemType" required>
+                                <option value="Men">Men</option>
+                                <option value="Women">Women</option>
+                                <option value="Common">Common</option>
+                                <option value="Gift Item">Gift Item</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="purchaseDate">Purchase/Entry Date</label>
+                            <input type="date" id="purchaseDate" required>
+                        </div>
+                        <div>
+                            <input type="hidden" id="editingExistingCode" value="">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div>
+                            <label for="productQty">Quantity Added / In Stock</label>
+                            <input type="number" id="productQty" value="1" min="1" required>
+                        </div>
+                        <div>
+                            <label for="costPrice">Rate / Cost Price (CP)</label>
+                            <input type="number" id="costPrice" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div><label for="mrp">MRP</label><input type="number" id="mrp" min="0" step="0.01" required></div>
+                        <div><label for="sellingPrice">Selling Price (SP)</label><input type="number" id="sellingPrice" min="0" step="0.01" required></div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div><label for="refBillNo">Ref Bill Number (Optional)</label><input type="text" id="refBillNo" placeholder="e.g., BILL-1029"></div>
+                        <div><label for="sellerName">Seller (Optional)</label><input type="text" id="sellerName" placeholder="e.g., ABC Traders"></div>
+                    </div>
+                    
+                    <div id="sellPriceWarning" class="warning" style="display:none;"></div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 10px;">
+                        <button id="btnSaveProduct" type="button" disabled>Save / Update Stock</button>
+                        <button id="btnClearProductForm" class="secondary-btn" type="button">Clear Form</button>
+                        <button id="btnPrintBarcode" type="button" class="secondary-btn">Print Barcode Label</button>
+                    </div>
+                    <div style="margin-top: 10px; text-align: center;"><svg id="barcodeSvg"></svg></div>
+                </form>
+            </div>
+            
+            <div class="flex-item" style="flex: 1;">
+                <h2 style="font-size: 1.1rem; margin-top: 0;">Category Management</h2>
+                <label for="invCategoryAdd">Add New Category</label>
+                <input type="text" id="invCategoryAdd" placeholder="Enter new category name">
+                <button id="btnAddCategoryInventory" disabled>Add Category</button>
+                
+                <h3 style="margin-top: 15px;">Delete Category</h3>
+                <label for="invCategoryDelete">Select Category to Delete</label>
+                <select id="invCategoryDelete"></select>
+                <div id="catDeleteWarning" class="warning" style="display:none;">Category contains active products. Re-assign products before deleting.</div>
+                <button id="btnDeleteCategoryInventory" class="secondary-btn">Delete Selected Category</button>
+            </div>
+        </div>
+        
+        <hr style="margin: 20px 0;">
+        
+        <h2 style="font-size: 1.1rem;">Current Master Inventory</h2>
+        <input type="text" id="searchInventory" placeholder="Search by Name or Code..." style="width: 250px;">
+        <div id="inventoryProductList" class="scrollable" style="max-height: 350px; margin-top: 10px;">
+            <p>Loading inventory...</p>
+        </div>
+        <datalist id="categoriesDatalist"></datalist>
+    </section>
+
+    <section id="stock" class="tab-content" aria-label="Purchase History">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Purchase History (Stock Batches Log)</h2>
+        
+        <div style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 0.8rem;">
+            <div style="flex: 1;">
+                <label for="searchStock">Filter by Name, Code, Category or Seller</label>
+                <input type="text" id="searchStock" placeholder="Type to filter..." style="margin-bottom:0;">
+            </div>
+            <button id="btnDownloadStock" class="success-btn" style="margin-top:0;">Export Purchase History (XLSX)</button>
+        </div>
+
+        <div class="scrollable" style="max-height: 420px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sr</th>
+                        <th>Purchase ID</th>
+                        <th>Purchase Date</th>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Seller</th>
+                        <th>Ref Bill</th>
+                        <th class="num-align">Qty</th>
+                        <th class="num-align">Cost Price</th>
+                        <th class="num-align">Selling Price</th>
+                        <th class="num-align">Total Cost</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTableBody">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="9" style="text-align: right;">Total Purchases:</th>
+                        <th id="stockQtyTotal" class="num-align">0</th>
+                        <th colspan="2"></th>
+                        <th class="num-align">₹<span id="stockCPTotal">0.00</span></th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+
+    <section id="sales" class="tab-content" aria-label="Sales History">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Sales History</h2>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 0.8rem;">
+          <div style="flex: 1;">
+            <label for="salesDateSearch">Filter by Date</label>
+            <input type="date" id="salesDateSearch" />
+          </div>
+          <div style="flex: 1;">
+            <label for="salesInvoiceSearch">Search Invoice ID/Item</label>
+            <input type="text" id="salesInvoiceSearch" placeholder="Search by ID or Item Name" />
+          </div>
+        </div>
+        
+        <div id="salesHistoryList" class="scrollable" style="max-height: 420px;">
+          <table id="salesHistoryTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>ID</th>
+                <th>Payment Breakdown</th>
+                <th>Items</th>
+                <th class="num-align">Total (₹)</th>
+                <th class="num-align">Profit (₹)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+    </section>
+
+    <section id="dataImport" class="tab-content" aria-label="Combined Sales and Purchase Import">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Update Sales + Purchase from One Excel / CSV File</h2>
+        <div style="background:#eef2ff; padding:14px; border-radius:6px; border:1px solid #cbd5e1;">
+            <label style="font-weight:bold;">Select one Excel / CSV file</label>
+            <input type="file" id="importCombinedFile" accept=".xlsx,.xls,.csv" style="margin:4px 0 8px 0;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="btnImportCombined" class="success-btn">Import Sales + Purchase + Expenses</button>
+                <button id="btnDownloadImportTemplate" class="secondary-btn" type="button">Download Import Template (.xlsx)</button>
+                <button id="btnRestoreBackup" class="secondary-btn" type="button">Restore Backup</button>
+                <input type="file" id="restoreBackupFile" accept=".json,application/json" style="display:none;">
+            </div>
+            <small style="color:#475569; display:block; margin-top:8px; line-height:1.5;">
+                Each row represents a date. Sales quantities are read from the <strong>sold QTY</strong> columns, purchases from the <strong>Purchase QTY + cost/amount</strong> columns, and expenses from <strong>Any expenses + Amount</strong>. Existing inventory prices are used for sales because the sales section of your format contains quantities, not selling prices.
+            </small>
+        </div>
+        <div id="googleSheetsStorageBox" style="margin-top:14px; padding:14px; background:#fff; border:1px solid #ddd; border-radius:6px;">
+            <h3 style="margin:0 0 8px 0;">Google Sheets Online Storage — Master Database</h3>
+            <div style="background:#f8f9fa; padding:10px; border-radius:5px; margin-bottom:10px; line-height:1.5;">
+                <strong>How this works:</strong> Google Sheet is the master database. This device keeps a local cache for speed, while every POS change is automatically synchronized to the Sheet after connection.
+            </div>
+            <label for="googleSheetsUrl">Google Apps Script Web App URL</label>
+            <input type="text" id="googleSheetsUrl" value="https://script.google.com/macros/s/AKfycbyzvi51QixKlaTewG7kO79h_FNv8aQE_xgXxZeZ1m2nTZ9UGUgVbS-6s2XoPeuIsmEWVQ/exec" readonly style="background:#f5f5f5;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="btnGoogleSheetsConnect" class="success-btn" type="button">Connect Google Sheet</button>
+                <button id="btnGoogleSheetsDownload" class="secondary-btn" type="button">Download from Sheet (Master → Device)</button>
+                <button id="btnGoogleSheetsUpload" class="secondary-btn" type="button">Upload Device Data to Sheet</button>
+            </div>
+            <div id="googleSheetsStatus" style="margin-top:8px; color:#555;">Google Sheets: Not connected</div>
+            <small style="color:#666; display:block; margin-top:6px;">
+                The first connection can initialize a completely new Google Sheet. If the Sheet is empty, you can upload the current device data. Once connected, the Sheet is treated as the master database.
+            </small>
+        </div>
+        <div style="margin-top:14px; padding:12px; background:#fff; border:1px solid #ddd; border-radius:6px;">
+            <label style="font-weight:bold; display:block;">Receipt / Print Image</label>
+            <input type="file" id="receiptLogoFile" accept="image/*" style="margin:5px 0;">
+            <button id="btnSaveReceiptLogo" class="success-btn" type="button">Upload / Save Image</button>
+            <button id="btnRemoveReceiptLogo" class="danger-btn" type="button">Remove Image</button>
+            <div id="receiptLogoPreview" style="text-align:center; margin-top:8px;"></div>
+            <small style="color:#666;">This image will be centered at the top of printed receipts instead of the shop name.</small>
+        </div>
+        <div id="combinedImportStatus" style="margin-top:10px;"></div>
+    </section>
+
+    <section id="report" class="tab-content" aria-label="Reports">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Analytics & Dynamic Data Reports</h2>
+        
+        <div style="background: #f1f3f5; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+            <div class="grid-3" style="margin-bottom: 8px;">
+                <div>
+                    <label for="reportTypeSelect">Type of Report</label>
+                    <select id="reportTypeSelect">
+                        <option value="monthly_custom">Monthly Report (Product Sales & Purchases Item Quantities)</option>
+                        <option value="sales_daily_reg">SALES REPORT (Daily Cashflow Register)</option>
+                        <option value="purchase_reg">Purchase REPORT (Stock & Procurement Register)</option>
+                        <option value="sales_perf">SALES PERFORMANCE (Daily Product Price & Qty)</option>
+                        <option value="overall_custom">OVERALL REPORT (Full Combined Register)</option>
+                        <option value="stock">Current Stock Valuation (Category-Wise)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="reportDateRangePreset">Date Filter Range</label>
+                    <select id="reportDateRangePreset">
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="last_7_days">Last 7 Days</option>
+                        <option value="last_30_days">Last 30 Days</option>
+                        <option value="custom">Custom Date Range (Defaults to Earliest Entry)</option>
+                    </select>
+                </div>
+                <div id="customDateRangeBox" style="display: none; grid-column: span 1;">
+                    <div style="display: flex; gap: 8px;">
+                        <div style="flex: 1;">
+                            <label for="reportStartDate">From Date</label>
+                            <input type="date" id="reportStartDate">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="reportEndDate">To Date</label>
+                            <input type="date" id="reportEndDate">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button id="btnGenerateReport">Generate Report</button>
+                <button id="btnExportReportExcel" class="success-btn">Download Excel (.xlsx)</button>
+                <button id="btnExportReportPDF" class="secondary-btn">Download PDF (.pdf)</button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
+            <h3 style="margin-top: 0;">Visual Analytics</h3>
+            <div id="reportChartsContainer" class="flex-container" style="gap: 15px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 300px; max-height: 380px; position: relative;">
+                    <canvas id="reportChartCanvas"></canvas>
+                </div>
+                <div id="reportChartCanvas2Container" style="flex: 1; min-width: 300px; max-height: 380px; position: relative; display: none;">
+                    <canvas id="reportChartCanvas2"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 id="reportTableTitle" style="margin-top: 0;">Report Data Table</h3>
+            <div class="scrollable" style="max-height: 400px;">
+                <table id="reportDataTable">
+                    <thead id="reportTableHead"></thead>
+                    <tbody id="reportTableBody"></tbody>
+                    <tfoot id="reportTableFoot"></tfoot>
+                </table>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<div id="receiptPrintContainer" style="display:none;"></div>
+
+<script>
+(() => {
+  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [];
+  const LOGIN_USERNAME = "Gens_worlD";
+  const LOGIN_PASSWORD = "Kdha@321";
+
+  const tabs = document.querySelectorAll('nav.tabs button');
+  const sections = document.querySelectorAll('section.tab-content');
+  const loginOverlay = document.getElementById('login-overlay');
+  const appContainer = document.querySelector('.container');
+
+  // Helper function to capitalize string words neatly
+  function formatTitleCase(str) {
+    if (!str) return '';
+    return String(str)
+      .toLowerCase()
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
+  // Pre-defined categories fallback list
+  const DEFAULT_CATEGORIES = ["Shirt", "Pant", "Tshirt", "Inners", "Dothi", "Uncategorized"];
+
+  function handleLogin() {
+    const usernameInput = document.getElementById('username').value;
+    const passwordInput = document.getElementById('password').value;
+
+    if (usernameInput === LOGIN_USERNAME && passwordInput === LOGIN_PASSWORD) {
+      loginOverlay.style.opacity = 0;
+      setTimeout(() => {
+        loginOverlay.style.display = 'none';
+        appContainer.style.display = 'block';
+        initApp();
+      }, 500);
+    } else {
+      alert("Invalid Username or Password.");
+    }
+  }
+
+  document.getElementById('loginButton').addEventListener('click', handleLogin);
+
+  // Trigger login on pressing Enter in login fields
+  document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+  document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+
+  const resetButton = document.getElementById('resetButton');
+  const resetOverlay = document.getElementById('reset-confirm-overlay');
+  const resetPasswordInput = document.getElementById('resetPassword');
+  const confirmResetButton = document.getElementById('confirmResetButton');
+  const cancelResetButton = document.getElementById('cancelResetButton');
+
+  resetButton.addEventListener('click', () => {
+    resetPasswordInput.value = '';
+    resetOverlay.style.display = 'flex';
+    setTimeout(() => resetPasswordInput.focus(), 50);
+  });
+
+  cancelResetButton.addEventListener('click', () => {
+    resetOverlay.style.display = 'none';
+    resetPasswordInput.value = '';
+  });
+
+  function downloadAutomaticBackup() {
+    const backup = {
+      format: 'Gens world || Fashion girls Backup',
+      version: '15.8.12',
+      createdAt: new Date().toISOString(),
+      localStorage: {},
+      sessionStorage: {}
+    };
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      backup.localStorage[key] = localStorage.getItem(key);
+    }
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      backup.sessionStorage[key] = sessionStorage.getItem(key);
+    }
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+    a.href = url;
+    a.download = `Gens_world_Fashion_girls_POS_Auto_Backup_${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  confirmResetButton.addEventListener('click', async () => {
+    if (resetPasswordInput.value !== LOGIN_PASSWORD) {
+      alert('Invalid confirmation password. Reset cancelled.');
+      resetPasswordInput.focus();
+      return;
+    }
+    if (!confirm('Are you absolutely sure? All POS data on this device AND the connected Google Sheet master database will be deleted. An automatic local backup will be downloaded first.')) return;
+    try {
+      downloadAutomaticBackup();
+    } catch (err) {
+      alert('Automatic backup could not be created. Reset cancelled so your data is safe.');
+      console.error(err);
+      return;
+    }
+
+    if (getCloudUrl()) {
+      const cloudCleared = await clearGoogleSheet();
+      if (!cloudCleared) return;
+    }
+
+    localStorage.clear();
+    sessionStorage.clear();
+    resetOverlay.style.display = 'none';
+    alert('Automatic backup created. Local data and the Google Sheet master database have been reset successfully. The page will reload.');
+    location.reload();
+  });
+
+  const btnRestoreBackup = document.getElementById('btnRestoreBackup');
+  const restoreBackupFile = document.getElementById('restoreBackupFile');
+  if (btnRestoreBackup && restoreBackupFile) {
+    btnRestoreBackup.addEventListener('click', () => restoreBackupFile.click());
+    restoreBackupFile.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      if (!confirm('Restore this backup? Current POS data on this device will be replaced by the backup data.')) return;
+      try {
+        const text = await file.text();
+        const backup = JSON.parse(text);
+        if (!backup || backup.format !== 'Gens world || Fashion girls Backup' || !backup.localStorage || typeof backup.localStorage !== 'object') {
+          throw new Error('Invalid Gens world || Fashion girls backup file.');
+        }
+        localStorage.clear();
+        Object.entries(backup.localStorage).forEach(([key, value]) => localStorage.setItem(key, String(value)));
+        sessionStorage.clear();
+        if (backup.sessionStorage && typeof backup.sessionStorage === 'object') {
+          Object.entries(backup.sessionStorage).forEach(([key, value]) => sessionStorage.setItem(key, String(value)));
+        }
+        alert('Backup restored successfully. The page will reload.');
+        location.reload();
+      } catch (err) {
+        alert('Backup restore failed: ' + (err.message || err));
+        console.error(err);
+      }
+    });
+  }
+
+  resetPasswordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmResetButton.click();
+    if (e.key === 'Escape') cancelResetButton.click();
+  });
+
+  function recalculateInventoryFromPurchases() {
+    // Recalculate current master inventory stock from all remaining purchase batches and sales
+    const inventoryMap = {};
+
+    purchaseHistory.forEach(ph => {
+      const codeStr = String(ph.code);
+      if (!inventoryMap[codeStr]) {
+        inventoryMap[codeStr] = {
+          code: ph.code,
+          name: ph.name,
+          category: ph.category,
+          itemType: ph.itemType || 'Common',
+          purchaseDate: ph.purchaseDate,
+          qty: 0,
+          cp: ph.cp,
+          mrp: ph.mrp || ph.sp,
+          sp: ph.sp,
+          refBillNo: ph.refBillNo || '',
+          sellerName: ph.sellerName || ''
+        };
+      }
+      inventoryMap[codeStr].qty += parseInt(ph.qty) || 0;
+      inventoryMap[codeStr].cp = ph.cp;
+      inventoryMap[codeStr].sp = ph.sp;
+    });
+
+    invoices.forEach(inv => {
+      inv.items.forEach(it => {
+        const codeStr = String(it.code);
+        if (inventoryMap[codeStr]) {
+          inventoryMap[codeStr].qty -= parseInt(it.qty) || 0;
+        }
+      });
+    });
+
+    products = Object.values(inventoryMap);
+  }
+
+  function getReceiptLogo(){ return localStorage.getItem('receiptLogo') || ''; }
+  function renderReceiptLogoPreview(){
+    const el=document.getElementById('receiptLogoPreview'); if(!el) return;
+    const logo=getReceiptLogo(); el.innerHTML=logo ? `<img src="${logo}" style="max-width:180px;max-height:80px;object-fit:contain;">` : '<span style="color:#888;">No image uploaded.</span>';
+  }
+
+  /*
+   * STORAGE ARCHITECTURE
+   * --------------------
+   * LocalStorage is only a device cache/temporary offline fallback.
+   * When a Google Apps Script Web App URL is configured, Google Sheets is
+   * the master database. Every normal saveLocal() also schedules a cloud save.
+   */
+  const BUILT_IN_CLOUD_URL = 'https://script.google.com/macros/s/AKfycbyzvi51QixKlaTewG7kO79h_FNv8aQE_xgXxZeZ1m2nTZ9UGUgVbS-6s2XoPeuIsmEWVQ/exec';
+  const CLOUD_URL_KEY = 'gensworld_google_sheets_webapp_url';
+  let cloudSyncTimer = null;
+  let cloudSyncInFlight = false;
+  let cloudSyncPending = false;
+  let cloudInitialized = false;
+
+  function getCloudUrl() { return BUILT_IN_CLOUD_URL; }
+
+  function setCloudStatus(message, ok = null) {
+    const el = document.getElementById('googleSheetsStatus');
+    if (el) {
+      el.textContent = 'Google Sheets: ' + message;
+      el.style.color = ok === true ? '#28a745' : (ok === false ? '#d9534f' : '#555');
+    }
+    const header = document.getElementById('statusMessage');
+    if (header) {
+      header.textContent = getCloudUrl() ? (ok === false ? 'Cloud ✕' : 'Cloud ✓') : '';
+      header.style.color = '#fff';
+      header.style.fontWeight = '600';
+      header.title = message;
+    }
+  }
+
+  function getDatabasePayload() {
+    return {
+      products,
+      invoices,
+      sales,
+      categories,
+      offers,
+      purchaseHistory,
+      expenses
+    };
+  }
+
+  function applyDatabasePayload(data) {
+    if (!data || typeof data !== 'object') throw new Error('Invalid database returned by Google Sheets.');
+    products = Array.isArray(data.products) ? data.products : [];
+    invoices = Array.isArray(data.invoices) ? data.invoices : [];
+    sales = Array.isArray(data.sales) ? data.sales : [];
+    categories = Array.isArray(data.categories) && data.categories.length ? data.categories : [...DEFAULT_CATEGORIES];
+    offers = Array.isArray(data.offers) ? data.offers : [];
+    purchaseHistory = Array.isArray(data.purchaseHistory) ? data.purchaseHistory : [];
+    expenses = Array.isArray(data.expenses) ? data.expenses : [];
+
+    const todayStr = (new Date()).toISOString().slice(0,10);
+    products.forEach(p => {
+      if (!p.itemType) p.itemType = "Common";
+      if (!p.purchaseDate) p.purchaseDate = todayStr;
+    });
+    purchaseHistory.forEach((ph, idx) => {
+      if (!ph.purchaseId) ph.purchaseId = 'PUR-' + (1000 + idx + 1);
+      if (ph.id === undefined || ph.id === null || ph.id === '') ph.id = Date.now() + idx;
+      ph.purchaseId = String(ph.purchaseId);
+    });
+  }
+
+  function loadFromLocal(){
+    products = JSON.parse(localStorage.getItem('products') || '[]');
+    invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+    sales = JSON.parse(localStorage.getItem('sales') || '[]');
+    categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(DEFAULT_CATEGORIES));
+    offers = JSON.parse(localStorage.getItem('offers') || '[]');
+    purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
+    expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+    const todayStr = (new Date()).toISOString().slice(0,10);
+    products.forEach(p => {
+      if (!p.itemType) p.itemType = "Common";
+      if (!p.purchaseDate) p.purchaseDate = todayStr;
+    });
+    purchaseHistory.forEach((ph, idx) => {
+      if (!ph.purchaseId) ph.purchaseId = 'PUR-' + (1000 + idx + 1);
+      if (ph.id === undefined || ph.id === null || ph.id === '') ph.id = Date.now() + idx;
+      ph.purchaseId = String(ph.purchaseId);
+    });
+  }
+
+  function saveLocal(){
+    localStorage.setItem('products', JSON.stringify(products));
+    localStorage.setItem('invoices', JSON.stringify(invoices));
+    localStorage.setItem('sales', JSON.stringify(sales));
+    localStorage.setItem('categories', JSON.stringify(categories));
+    localStorage.setItem('offers', JSON.stringify(offers));
+    localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+    scheduleCloudSave();
+  }
+
+  async function cloudRequest(action, data = null) {
+    const url = getCloudUrl();
+    if (!url) throw new Error('Google Apps Script Web App URL is not configured.');
+
+    if (data === null) {
+      return await new Promise((resolve, reject) => {
+        const callbackName = '__gensworld_jsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        const script = document.createElement('script');
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error('Google Sheets request timed out. Check that the Web App is deployed as “Anyone”.'));
+        }, 20000);
+        function cleanup() {
+          clearTimeout(timeout);
+          delete window[callbackName];
+          script.remove();
+        }
+        window[callbackName] = result => {
+          cleanup();
+          if (!result || result.ok !== true) {
+            reject(new Error(result && result.error ? result.error : 'Unknown Google Sheets error.'));
+            return;
+          }
+          resolve(result);
+        };
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('Google Sheets could not be reached. Check the Web App deployment/access setting.'));
+        };
+        script.src = url + '?action=get&callback=' + encodeURIComponent(callbackName) + '&_=' + Date.now();
+        document.head.appendChild(script);
+      });
+    }
+
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, data })
+    });
+    return { ok: true, message: 'Request sent to Google Sheets.' };
+  }
+
+  async function downloadFromGoogleSheet(showAlert = true) {
+    const url = getCloudUrl();
+    if (!url) {
+      setCloudStatus('Not connected', false);
+      if (showAlert) alert('The Google Apps Script Web App is built into this version.');
+      return false;
+    }
+
+    try {
+      setCloudStatus('Connecting…');
+      const result = await cloudRequest('get');
+      const data = result.data || {};
+      const hasCloudData = !!result.hasData;
+
+      if (!hasCloudData) {
+        setCloudStatus('Connected — Sheet is empty', true);
+        if (showAlert) alert('Google Sheet is connected but empty. Use “Upload Device Data to Sheet” to make the Sheet the master database.');
+        return true;
+      }
+
+      applyDatabasePayload(data);
+      saveLocalNoCloud();
+      cloudInitialized = true;
+      setCloudStatus('Connected — Master database loaded', true);
+      renderAllVisibleTabs();
+      if (showAlert) alert('Google Sheet master database downloaded successfully.');
+      return true;
+    } catch (err) {
+      console.error(err);
+      setCloudStatus('Connection failed: ' + (err.message || err), false);
+      if (showAlert) alert('Google Sheets connection failed: ' + (err.message || err));
+      return false;
+    }
+  }
+
+  async function uploadToGoogleSheet(showAlert = true) {
+    const url = getCloudUrl();
+    if (!url) {
+      setCloudStatus('Not connected', false);
+      if (showAlert) alert('The Google Apps Script Web App is built into this version.');
+      return false;
+    }
+
+    try {
+      setCloudStatus('Uploading master database…');
+      const result = await cloudRequest('save', getDatabasePayload());
+      cloudInitialized = true;
+      setCloudStatus('Connected — Master database saved', true);
+      if (showAlert) alert(result.message || 'Device data uploaded to Google Sheet successfully.');
+      return true;
+    } catch (err) {
+      console.error(err);
+      setCloudStatus('Upload failed: ' + (err.message || err), false);
+      if (showAlert) alert('Google Sheets upload failed: ' + (err.message || err));
+      return false;
+    }
+  }
+
+  async function clearGoogleSheet() {
+    const url = getCloudUrl();
+    if (!url) return true;
+    try {
+      setCloudStatus('Clearing master database…');
+      await cloudRequest('clear');
+      cloudInitialized = false;
+      setCloudStatus('Connected — Master database cleared', true);
+      return true;
+    } catch (err) {
+      console.error(err);
+      setCloudStatus('Clear failed: ' + (err.message || err), false);
+      alert('Google Sheet could not be cleared. Reset cancelled so your cloud data remains safe.');
+      return false;
+    }
+  }
+
+  function saveLocalNoCloud(){
+    localStorage.setItem('products', JSON.stringify(products));
+    localStorage.setItem('invoices', JSON.stringify(invoices));
+    localStorage.setItem('sales', JSON.stringify(sales));
+    localStorage.setItem('categories', JSON.stringify(categories));
+    localStorage.setItem('offers', JSON.stringify(offers));
+    localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }
+
+  function scheduleCloudSave() {
+    if (!getCloudUrl() || !cloudInitialized) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(() => syncCloudNow(), 500);
+  }
+
+  async function syncCloudNow() {
+    if (!getCloudUrl() || !cloudInitialized) return;
+    if (cloudSyncInFlight) {
+      cloudSyncPending = true;
+      return;
+    }
+    cloudSyncInFlight = true;
+    cloudSyncPending = false;
+    try {
+      setCloudStatus('Saving…');
+      await cloudRequest('save', getDatabasePayload());
+      setCloudStatus('Connected — Synced ✓', true);
+    } catch (err) {
+      console.error(err);
+      setCloudStatus('Sync failed — local cache kept', false);
+    } finally {
+      cloudSyncInFlight = false;
+      if (cloudSyncPending) syncCloudNow();
+    }
+  }
+
+  function renderAllVisibleTabs() {
+    const activeTab = document.querySelector('nav.tabs button.active')?.getAttribute('data-tab');
+    if (activeTab) renderTab(activeTab);
+    renderReceiptLogoPreview();
+  }
+
+  function initGoogleSheetsUI() {
+    const urlInput = document.getElementById('googleSheetsUrl');
+    const connectBtn = document.getElementById('btnGoogleSheetsConnect');
+    const downloadBtn = document.getElementById('btnGoogleSheetsDownload');
+    const uploadBtn = document.getElementById('btnGoogleSheetsUpload');
+
+    if (!urlInput) return;
+    urlInput.value = getCloudUrl();
+    if (getCloudUrl()) setCloudStatus('Configured — checking master database…');
+
+    connectBtn?.addEventListener('click', async () => {
+      localStorage.setItem(CLOUD_URL_KEY, BUILT_IN_CLOUD_URL);
+      cloudInitialized = false;
+      const loaded = await downloadFromGoogleSheet(true);
+      if (loaded && !cloudInitialized) {
+        const result = await cloudRequest('get').catch(() => null);
+        if (result && !result.hasData && confirm('The Google Sheet is empty. Upload the current device data to make the Sheet the master database now?')) {
+          await uploadToGoogleSheet(true);
+        }
+      }
+    });
+
+    downloadBtn?.addEventListener('click', () => downloadFromGoogleSheet(true));
+    uploadBtn?.addEventListener('click', () => uploadToGoogleSheet(true));
+  }
+
+  async function initApp() {
+    loadFromLocal();
+    initGoogleSheetsUI();
+
+    localStorage.setItem(CLOUD_URL_KEY, BUILT_IN_CLOUD_URL);
+    const configuredUrl = getCloudUrl();
+    if (configuredUrl) {
+      const loaded = await downloadFromGoogleSheet(false);
+      if (!loaded) {
+        // Keep local cache available when internet/Google is temporarily unavailable.
+        setCloudStatus('Offline — using local cache', false);
+      }
+    }
+
+    const activeTab = document.querySelector('nav.tabs button.active').getAttribute('data-tab');
+    renderTab(activeTab);
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const tabId = tab.getAttribute('data-tab');
+      sections.forEach(sec => sec.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      renderTab(tabId);
+    });
+  });
+
+  function renderTab(tabId) {
+    switch(tabId){
+      case 'dashboard': renderDashboard(); break;
+      case 'invoice': openNewBillingPopup(); break;
+      case 'expenses': renderExpenses(); break;
+      case 'offers': renderOffers(); break;
+      case 'inventory': renderInventory(); break;
+      case 'stock': renderStock(); break;
+      case 'sales': renderSalesHistory(); break;
+      case 'dataImport': break;
+      case 'report': initReportTab(); break;
+    }
+  }
+
+  function pad(num) {
+    return num < 10 ? '0'+num : num;
+  }
+
+  function formatINR(num){
+    const parsedNum = parseFloat(num) || 0;
+    return '₹'+parsedNum.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function getEarliestEntryDate() {
+    let dates = [];
+    invoices.forEach(i => { if (i.date) dates.push(i.date); });
+    purchaseHistory.forEach(p => { if (p.purchaseDate) dates.push(p.purchaseDate); });
+    if (dates.length === 0) return (new Date()).toISOString().slice(0, 10);
+    dates.sort();
+    return dates[0];
+  }
+
+  function calculateInvoiceTotal(invoice) {
+    if (!invoice || !Array.isArray(invoice.items)) return 0;
+
+    const rawTotal = invoice.items.reduce((sum, item) => {
+      const qty = Number(item.qty) || 0;
+      const sp = Number(item.sp) || 0;
+      const discount = Number(item.discount) || 0;
+      return sum + (sp * qty) - discount;
+    }, 0);
+
+    // Business rule:
+    // - No decimal amount is allowed after discount.
+    // - Positive discount reduces the payable amount.
+    // - Negative discount increases the payable amount.
+    // Round to the nearest whole rupee.
+    return Math.round(rawTotal);
+  }
+  
+  function calculateInvoiceProfit(invoice) {
+      let totalCost = 0;
+      const netTotal = calculateInvoiceTotal(invoice);
+      
+      invoice.items.forEach(item => {
+          const product = products.find(p => String(p.code) === String(item.code));
+          const cp = product ? product.cp : (item.cp || 0);
+          totalCost += cp * item.qty;
+      });
+      
+      return netTotal - totalCost;
+  }
+
+  let _dailyChart=null, _monthlyChart=null;
+
+  function renderDashboard(){
+    const lifetimeRevenue = invoices.reduce((acc, inv) => acc + calculateInvoiceTotal(inv), 0);
+    const lifetimeProfit = invoices.reduce((acc, inv) => acc + calculateInvoiceProfit(inv), 0);
+    document.querySelector('#totalLifetimeRevenueCard .value').textContent = formatINR(lifetimeRevenue);
+    document.getElementById('lifetimeProfitText').textContent = `(Profit: ${formatINR(lifetimeProfit)})`;
+
+    const currentStockUnits = products.reduce((a,p)=> a+p.qty, 0);
+    const totallyPurchasedStock = purchaseHistory.reduce((a,p)=> a+p.qty, 0);
+    document.querySelector('#totalStockUnitsCard .value').textContent = `${currentStockUnits} / ${totallyPurchasedStock}`;
+
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0,10);
+    
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().slice(0,10);
+
+    let todaySales = 0, todayProfit = 0;
+    let yesterdaySales = 0, yesterdayProfit = 0;
+
+    invoices.forEach(inv => {
+      const invTotal = calculateInvoiceTotal(inv);
+      const invProfit = calculateInvoiceProfit(inv);
+      if (inv.date === todayStr) {
+        todaySales += invTotal;
+        todayProfit += invProfit;
+      } else if (inv.date === yesterdayStr) {
+        yesterdaySales += invTotal;
+        yesterdayProfit += invProfit;
+      }
+    });
+
+    document.querySelector('#salesTodayCard .value').textContent = formatINR(todaySales);
+    document.getElementById('salesTodayProfitText').textContent = `(Profit: ${formatINR(todayProfit)})`;
+
+    document.querySelector('#salesYesterdayCard .value').textContent = formatINR(yesterdaySales);
+    document.getElementById('salesYesterdayProfitText').textContent = `(Profit: ${formatINR(yesterdayProfit)})`;
+
+    const dailyMap = {};
+    invoices.forEach(inv => {
+      if (!dailyMap[inv.date]) dailyMap[inv.date] = { sales: 0, profit: 0 };
+      dailyMap[inv.date].sales += calculateInvoiceTotal(inv);
+      dailyMap[inv.date].profit += calculateInvoiceProfit(inv);
+    });
+
+    const dailyEntries = Object.entries(dailyMap);
+    if (dailyEntries.length > 0) {
+      dailyEntries.sort((a, b) => b[1].sales - a[1].sales);
+      const highestDay = dailyEntries[0];
+      const lowestDay = dailyEntries[dailyEntries.length - 1];
+
+      document.getElementById('highestDayDate').textContent = `Date: ${highestDay[0]}`;
+      document.getElementById('highestDaySales').textContent = `Sales: ${formatINR(highestDay[1].sales)}`;
+      document.getElementById('highestDayProfit').textContent = `Profit: ${formatINR(highestDay[1].profit)}`;
+
+      document.getElementById('lowestDayDate').textContent = `Date: ${lowestDay[0]}`;
+      document.getElementById('lowestDaySales').textContent = `Sales: ${formatINR(lowestDay[1].sales)}`;
+      document.getElementById('lowestDayProfit').textContent = `Profit: ${formatINR(lowestDay[1].profit)}`;
+    } else {
+      document.getElementById('highestDayDate').textContent = `Date: -`;
+      document.getElementById('highestDaySales').textContent = `Sales: ₹0.00`;
+      document.getElementById('highestDayProfit').textContent = `Profit: ₹0.00`;
+
+      document.getElementById('lowestDayDate').textContent = `Date: -`;
+      document.getElementById('lowestDaySales').textContent = `Sales: ₹0.00`;
+      document.getElementById('lowestDayProfit').textContent = `Profit: ₹0.00`;
+    }
+
+    const currentMonthKey = now.toISOString().slice(0, 7);
+    const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthKey = prevMonthDate.toISOString().slice(0, 7);
+
+    let curMonthSales = 0, curMonthProfit = 0;
+    let prevMonthSales = 0, prevMonthProfit = 0;
+
+    invoices.forEach(inv => {
+      if (inv.date.startsWith(currentMonthKey)) {
+        curMonthSales += calculateInvoiceTotal(inv);
+        curMonthProfit += calculateInvoiceProfit(inv);
+      } else if (inv.date.startsWith(prevMonthKey)) {
+        prevMonthSales += calculateInvoiceTotal(inv);
+        prevMonthProfit += calculateInvoiceProfit(inv);
+      }
+    });
+
+    document.getElementById('currentMonthName').textContent = `Month: ${currentMonthKey}`;
+    document.getElementById('currentMonthSales').textContent = `Sales: ${formatINR(curMonthSales)}`;
+    document.getElementById('currentMonthProfit').textContent = `Profit: ${formatINR(curMonthProfit)}`;
+
+    document.getElementById('previousMonthName').textContent = `Month: ${prevMonthKey}`;
+    document.getElementById('previousMonthSales').textContent = `Sales: ${formatINR(prevMonthSales)}`;
+    document.getElementById('previousMonthProfit').textContent = `Profit: ${formatINR(prevMonthProfit)}`;
+
+    const dailyLabels = [];
+    for(let i=29; i>=0; i--){
+      const d = new Date(Date.now()-i*864e5);
+      const ds = d.toISOString().slice(0,10);
+      dailyLabels.push(ds);
+    }
+    
+    const dailyData = dailyLabels.map(ds => 
+      invoices.filter(i => i.date === ds).reduce((a,v) => a + calculateInvoiceTotal(v), 0)
+    );
+    
+    renderLineChart('dailySalesChart', dailyLabels, dailyData, 'Daily Sales Total');
+
+    const monthlyLabels = [];
+    const monthlyData = [];
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth();
+    for(let i=11; i>=0; i--){
+      const y = nowYear;
+      const m = (nowMonth - i + 12) % 12;
+      const monthKey = y+'-'+pad(m+1);
+      monthlyLabels.push(new Date(y,m).toLocaleString('en-IN', {month:'short', year:'numeric'}));
+      monthlyData.push(invoices.filter(i => i.date && i.date.startsWith(monthKey)).reduce((a,v) => a + calculateInvoiceTotal(v), 0));
+    }
+    renderBarChart('monthlySalesChart', monthlyLabels, monthlyData, 'Monthly Sales Total');
+  }
+
+  function renderLineChart(id, labels, data, label){
+    if(_dailyChart){ _dailyChart.destroy(); _dailyChart=null; }
+    const ctx = document.getElementById(id).getContext('2d');
+    _dailyChart = new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[{
+          label,
+          data,
+          borderColor:'#4B5FFF',
+          backgroundColor:'rgba(75,91,255,0.3)',
+          fill:true,
+          tension: 0.3,
+          pointRadius: 3
+        }]
+      },
+      options:{
+        responsive:true,
+        scales: { y: { beginAtZero:true }},
+        plugins: { legend: { display:true } }
+      }
+    });
+  }
+
+  function renderBarChart(id, labels, data, label){
+    if(_monthlyChart){ _monthlyChart.destroy(); _monthlyChart=null; }
+    const ctx = document.getElementById(id).getContext('2d');
+    _monthlyChart = new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          label,
+          data,
+          backgroundColor:'#0D9FFF'
+        }]
+      },
+      options:{
+        responsive:true,
+        scales: { y: { beginAtZero:true }},
+        plugins: { legend: { display:true } }
+      }
+    });
+  }
+
+  /* EXPENSES MODULE */
+  const expenseForm = document.getElementById('expenseForm');
+  const expenseDateInput = document.getElementById('expenseDate');
+  const expenseAmountInput = document.getElementById('expenseAmount');
+  const expenseRemarkInput = document.getElementById('expenseRemark');
+  const expenseTableBody = document.getElementById('expenseTableBody');
+  const totalExpenseAmountSpan = document.getElementById('totalExpenseAmount');
+
+  function renderExpenses() {
+    expenseDateInput.value = (new Date()).toISOString().slice(0,10);
+    renderExpenseTable();
+  }
+
+  expenseForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const date = expenseDateInput.value;
+    const amount = parseFloat(expenseAmountInput.value) || 0;
+    const remark = expenseRemarkInput.value.trim();
+
+    if (!date || amount <= 0 || !remark) {
+      alert("Please fill in valid expense details.");
+      return;
+    }
+
+    expenses.push({
+      id: Date.now(),
+      date,
+      amount,
+      remark
+    });
+
+    saveLocal();
+    expenseAmountInput.value = "100";
+    expenseRemarkInput.value = "TEA, FLOWER";
+    renderExpenseTable();
+    alert("Expense added successfully!");
+  });
+
+  function renderExpenseTable() {
+    let total = 0;
+    const sortedExpenses = [...expenses].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    if (sortedExpenses.length === 0) {
+      expenseTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No expenses recorded.</td></tr>';
+      totalExpenseAmountSpan.textContent = '₹0.00';
+      return;
+    }
+
+    expenseTableBody.innerHTML = sortedExpenses.map(exp => {
+      total += exp.amount;
+      return `<tr>
+        <td>${exp.date}</td>
+        <td class="num-align">${formatINR(exp.amount)}</td>
+        <td>${exp.remark}</td>
+        <td><button class="danger-btn" onclick="deleteExpense(${exp.id})" style="margin:0; padding:2px 6px; font-size:0.75rem;">Delete</button></td>
+      </tr>`;
+    }).join('');
+
+    totalExpenseAmountSpan.textContent = formatINR(total);
+  }
+
+  window.deleteExpense = (id) => {
+    if (confirm("Are you sure you want to delete this expense entry?")) {
+      expenses = expenses.filter(exp => exp.id !== id);
+      saveLocal();
+      renderExpenseTable();
+    }
+  };
+
+  const offerItemCodeSelect = document.getElementById('offerItemCode');
+  const offerItemNameInput = document.getElementById('offerItemName');
+  const offerCostPriceInput = document.getElementById('offerCostPrice');
+  const offerOriginalPriceInput = document.getElementById('offerOriginalPrice');
+  const offerQtyInput = document.getElementById('offerQty');
+  const offerPriceInput = document.getElementById('offerPrice');
+  const offerForm = document.getElementById('offerForm');
+  const offersTableBody = document.getElementById('offersTableBody');
+
+  const previewStdTotal = document.getElementById('previewStdTotal');
+  const previewCpTotal = document.getElementById('previewCpTotal');
+  const previewDiscount = document.getElementById('previewDiscount');
+  const previewProfit = document.getElementById('previewProfit');
+
+  function renderOffers() {
+    offerItemCodeSelect.innerHTML = '<option value="">-- Select Item Code --</option>' + 
+      products.map(p => `<option value="${p.code}">${p.code} - ${p.name}</option>`).join('');
+
+    renderOffersTable();
+    calculateOfferProfitPreview();
+  }
+
+  offerItemCodeSelect.addEventListener('change', () => {
+    const code = offerItemCodeSelect.value;
+    const prod = products.find(p => String(p.code) === String(code));
+    if (prod) {
+      offerItemNameInput.value = prod.name;
+      offerCostPriceInput.value = prod.cp.toFixed(2);
+      offerOriginalPriceInput.value = prod.sp.toFixed(2);
+    } else {
+      offerItemNameInput.value = '';
+      offerCostPriceInput.value = '';
+      offerOriginalPriceInput.value = '';
+    }
+    calculateOfferProfitPreview();
+  });
+
+  offerQtyInput.addEventListener('input', calculateOfferProfitPreview);
+  offerPriceInput.addEventListener('input', calculateOfferProfitPreview);
+
+  function calculateOfferProfitPreview() {
+    const code = offerItemCodeSelect.value;
+    const prod = products.find(p => String(p.code) === String(code));
+    const qty = parseInt(offerQtyInput.value) || 0;
+    const offerPrice = parseFloat(offerPriceInput.value) || 0;
+
+    if (!prod || qty <= 0) {
+      previewStdTotal.textContent = '₹0.00';
+      previewCpTotal.textContent = '₹0.00';
+      previewDiscount.textContent = '₹0.00';
+      previewProfit.textContent = '₹0.00';
+      previewProfit.style.color = '#28a745';
+      return;
+    }
+
+    const totalCP = prod.cp * qty;
+    const totalStdSP = prod.sp * qty;
+    const discount = totalStdSP - offerPrice;
+    const profit = offerPrice - totalCP;
+
+    previewStdTotal.textContent = formatINR(totalStdSP);
+    previewCpTotal.textContent = formatINR(totalCP);
+    previewDiscount.textContent = formatINR(discount);
+    previewProfit.textContent = formatINR(profit);
+
+    if (profit < 0) {
+      previewProfit.style.color = '#d9534f'; 
+    } else {
+      previewProfit.style.color = '#28a745'; 
+    }
+  }
+
+  offerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = offerItemCodeSelect.value;
+    const qty = parseInt(offerQtyInput.value);
+    const offerPrice = parseFloat(offerPriceInput.value);
+
+    const product = products.find(p => String(p.code) === String(code));
+    if (!product) {
+      alert("Please select a valid item code.");
+      return;
+    }
+
+    const existingIndex = offers.findIndex(o => String(o.code) === String(code));
+    const offerData = {
+      code: product.code,
+      name: product.name,
+      cp: product.cp,
+      sp: product.sp,
+      qty: qty,
+      offerPrice: offerPrice
+    };
+
+    if (existingIndex >= 0) {
+      offers[existingIndex] = offerData;
+      alert(`Offer updated for product ${product.name}`);
+    } else {
+      offers.push(offerData);
+      alert(`Offer saved for product ${product.name}`);
+    }
+
+    saveLocal();
+    offerForm.reset();
+    offerItemNameInput.value = '';
+    offerCostPriceInput.value = '';
+    offerOriginalPriceInput.value = '';
+    calculateOfferProfitPreview();
+    renderOffersTable();
+  });
+
+  function renderOffersTable() {
+    if (offers.length === 0) {
+      offersTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No offers active.</td></tr>';
+      return;
+    }
+
+    offersTableBody.innerHTML = offers.map(o => {
+      const prod = products.find(p => String(p.code) === String(o.code));
+      const cp = prod ? prod.cp : (o.cp || 0);
+      const totalCP = cp * o.qty;
+      const totalStandardSP = o.sp * o.qty;
+      const profit = o.offerPrice - totalCP;
+
+      return `<tr>
+        <td>${o.code}</td>
+        <td>${o.name}</td>
+        <td class="num-align">${o.qty}</td>
+        <td class="num-align">${formatINR(totalCP)}</td>
+        <td class="num-align">${formatINR(totalStandardSP)}</td>
+        <td class="num-align">${formatINR(o.offerPrice)}</td>
+        <td class="num-align" style="font-weight: bold; color: ${profit >= 0 ? 'green' : 'red'};">${formatINR(profit)}</td>
+        <td><button class="danger-btn" onclick="deleteOffer('${o.code}')" style="margin:0; padding:3px 8px; font-size:0.75rem;">Delete</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.deleteOffer = (code) => {
+    if (confirm(`Remove offer for code ${code}?`)) {
+      offers = offers.filter(o => String(o.code) !== String(code));
+      saveLocal();
+      renderOffersTable();
+    }
+  };
+
+  const invCategoryAdd = document.getElementById('invCategoryAdd');
+  const btnAddCategoryInventory = document.getElementById('btnAddCategoryInventory');
+  const invCategoryDelete = document.getElementById('invCategoryDelete');
+  const btnDeleteCategoryInventory = document.getElementById('btnDeleteCategoryInventory');
+  const catDeleteWarning = document.getElementById('catDeleteWarning');
+  const categoriesDatalist = document.getElementById('categoriesDatalist');
+  const productCategoryInput = document.getElementById('productCategory');
+  const productNameInput = document.getElementById('productName');
+  const productQtyInput = document.getElementById('productQty');
+  const itemTypeSelect = document.getElementById('itemType');
+  const purchaseDateInput = document.getElementById('purchaseDate');
+  const costPriceInput = document.getElementById('costPrice');
+  const mrpInput = document.getElementById('mrp');
+  const sellingPriceInput = document.getElementById('sellingPrice');
+  const refBillNoInput = document.getElementById('refBillNo');
+  const sellerNameInput = document.getElementById('sellerName');
+  const sellPriceWarning = document.getElementById('sellPriceWarning');
+  const uniqueCodeInput = document.getElementById('uniqueCode');
+  const barcodeSvg = document.getElementById('barcodeSvg');
+  const btnSaveProduct = document.getElementById('btnSaveProduct');
+  const btnPrintBarcode = document.getElementById('btnPrintBarcode');
+  const btnClearProductForm = document.getElementById('btnClearProductForm');
+  const searchInventory = document.getElementById('searchInventory');
+  const inventoryProductList = document.getElementById('inventoryProductList');
+  const productForm = document.getElementById('productForm');
+  const editingExistingCodeInput = document.getElementById('editingExistingCode');
+  let editingPurchaseHistoryId = null; // stable purchaseId token while editing
+
+  purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
+
+  invCategoryAdd.addEventListener('input', () => {
+    btnAddCategoryInventory.disabled = !invCategoryAdd.value.trim();
+  });
+
+  // Handle case-insensitive category matching on click or enter
+  function addCategoryHandler() {
+    const catToAdd = invCategoryAdd.value.trim();
+    if(!catToAdd) return;
+
+    if(categories.some(c => c.toLowerCase() === catToAdd.toLowerCase())){
+      alert("Category already exists.");
+      return;
+    }
+    categories.push(catToAdd);
+    saveLocal(); 
+    renderInventory();
+    invCategoryAdd.value = '';
+    btnAddCategoryInventory.disabled = true;
+  }
+
+  btnAddCategoryInventory.addEventListener('click', addCategoryHandler);
+  invCategoryAdd.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCategoryHandler();
+    }
+  });
+
+  // Select category on pressing Enter in category field
+  productCategoryInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const val = productCategoryInput.value.trim();
+      if (val) {
+        const match = categories.find(c => c.toLowerCase() === val.toLowerCase());
+        if (match) {
+          productCategoryInput.value = match;
+        }
+      }
+    }
+  });
+
+  btnDeleteCategoryInventory.addEventListener('click', () => {
+    const selectedCat = invCategoryDelete.value;
+    if(!selectedCat) return;
+    if(products.some(p => p.category.toLowerCase() === selectedCat.toLowerCase())){
+      catDeleteWarning.style.display = 'block';
+      return;
+    }
+    catDeleteWarning.style.display = 'none';
+    if(confirm(`Confirm deleting category: ${selectedCat}`)){
+      categories = categories.filter(c => c.toLowerCase() !== selectedCat.toLowerCase());
+      products.forEach(p => { if (p.category.toLowerCase() === selectedCat.toLowerCase()) p.category = "Uncategorized"; });
+      saveLocal(); 
+      renderInventory();
+    }
+  });
+
+  function populateCategoryLists(){
+    categoriesDatalist.innerHTML = categories.map(c=>`<option value="${c}">`).join('');
+    invCategoryDelete.innerHTML = categories.map(c=>`<option>${c}</option>`).join('');
+  }
+  
+  function validateSellingPrice(){
+    const cp = parseFloat(costPriceInput.value);
+    const mrp = parseFloat(mrpInput.value);
+    const sp = parseFloat(sellingPriceInput.value);
+    const name = productNameInput.value.trim();
+    const type = itemTypeSelect.value;
+
+    if(isNaN(cp) || isNaN(mrp) || isNaN(sp) || !name){
+      sellPriceWarning.style.display = 'none';
+      btnSaveProduct.disabled = true;
+      return false;
+    }
+
+    if (type !== "Gift Item") {
+      if(sp < cp || sp > mrp){
+        sellPriceWarning.textContent = "Selling Price must be between Cost Price and MRP (Except for Gift Items)";
+        sellPriceWarning.style.display = 'block';
+        btnSaveProduct.disabled = true;
+        return false;
+      }
+    }
+
+    sellPriceWarning.style.display = 'none';
+    btnSaveProduct.disabled = false;
+    return true;
+  }
+  costPriceInput.addEventListener('input', validateSellingPrice);
+  mrpInput.addEventListener('input', validateSellingPrice);
+  sellingPriceInput.addEventListener('input', validateSellingPrice);
+  productNameInput.addEventListener('input', validateSellingPrice);
+  uniqueCodeInput.addEventListener('input', validateSellingPrice);
+  itemTypeSelect.addEventListener('change', validateSellingPrice);
+
+  function generateBarcode(code) {
+    if(!code) {
+      barcodeSvg.innerHTML = '';
+      return;
+    }
+    try {
+        JsBarcode(barcodeSvg, code, {format:"CODE128", width:1.2, height:35, displayValue:true});
+    } catch(e) {
+        barcodeSvg.innerHTML = `<p class="warning">Invalid Barcode</p>`;
+    }
+  }
+  uniqueCodeInput.addEventListener('input', () => {
+    generateBarcode(uniqueCodeInput.value.trim());
+  });
+
+  btnPrintBarcode.addEventListener('click', () => {
+    const code = uniqueCodeInput.value.trim();
+    const name = productNameInput.value.trim();
+    const sp = sellingPriceInput.value.trim();
+    if(!code || !name || !sp) {
+      alert("Please enter Code, Product Name, and Selling Price first.");
+      return;
+    }
+    
+    const printWin = window.open('', '_blank', 'width=350,height=350');
+    printWin.document.write(`
+      <html>
+        <head>
+          <title>Print Barcode</title>
+          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+          <style>
+            body { font-family: sans-serif; text-align: center; margin: 10px; }
+            .label { border: 1px dashed #ccc; padding: 8px; display: inline-block; }
+          </style>
+        </head>
+        <body>
+          <div class="label">
+            <div style="font-weight:bold; font-size:11px;">${name.substring(0,22)}</div>
+            <svg id="bcSvg"></svg>
+            <div style="font-size:10px;">Code: ${code}</div>
+            <div style="font-weight:bold; font-size:12px; margin-top:2px;">MRP: ${formatINR(parseFloat(sp))}</div>
+          </div>
+          <script>
+            JsBarcode('#bcSvg', '${code}', { format: 'CODE128', width: 1.2, height: 35, displayValue: false });
+            setTimeout(() => { window.print(); window.close(); }, 500);
+          <\/script>
+        </body>
+      </html>
+    `);
+    printWin.document.close();
+  });
+
+  function generateUniqueCode(costPrice, productName){
+    let costPriceStr = String(Math.round(costPrice*100));
+    const basePrefix = `999${costPriceStr}310999`;
+    
+    const relatedProducts = products.filter(p => String(p.code).startsWith(basePrefix));
+    let nextSerial = 0;
+    
+    if (relatedProducts.length > 0) {
+        const serials = relatedProducts.map(p => {
+             const suffix = String(p.code).slice(basePrefix.length);
+             return parseInt(suffix) || 0;
+        });
+        nextSerial = Math.min(...serials) - 1; 
+    } else {
+        nextSerial = 0;
+    }
+    
+    if (nextSerial < -999) nextSerial = -999; 
+
+    return basePrefix + String(Math.abs(nextSerial)).padStart(3,'0');
+  }
+
+  btnSaveProduct.addEventListener('click', e => {
+    e.preventDefault();
+    if(!validateSellingPrice()) return;
+
+    const productName = productNameInput.value.trim();
+    let category = productCategoryInput.value.trim();
+    if(!category) category = "Uncategorized";
+
+    // Upper and lower case is same don't create new category
+    let catFound = categories.find(c => c.toLowerCase() === category.toLowerCase());
+    if(!catFound){
+      categories.push(category);
+      catFound = category;
+    }
+    category = catFound;
+
+    const qty = parseInt(productQtyInput.value) || 0;
+    const itemType = itemTypeSelect.value;
+    const purchaseDate = purchaseDateInput.value || (new Date()).toISOString().slice(0,10);
+    const cp = parseFloat(costPriceInput.value);
+    const mrp = parseFloat(mrpInput.value);
+    const sp = parseFloat(sellingPriceInput.value);
+    const refBillNo = refBillNoInput.value.trim();
+    const sellerName = sellerNameInput.value.trim();
+    const editingCode = editingExistingCodeInput.value;
+
+    let code = uniqueCodeInput.value.trim();
+
+    // Purchase History Edit: preserve the code only when the edited item is still an exact match.
+    // If name/category/price/type changes, locate an existing exact item; otherwise create a new code.
+    if (editingPurchaseHistoryId !== null) {
+      const editToken = String(btnSaveProduct.dataset.purchaseEditId || editingPurchaseHistoryId || '');
+      const purchaseEntry = purchaseHistory.find(ph =>
+        String(ph.purchaseId || ('PUR-' + ph.id)) === editToken
+      );
+      if (!purchaseEntry) { editingPurchaseHistoryId = null; alert('Purchase entry not found.'); return; }
+
+      const oldCode = String(purchaseEntry.code || '');
+      const sameItem = (ph) => String(ph.code || '') === oldCode &&
+        String(ph.name || '').trim().toLowerCase() === productName.toLowerCase() &&
+        String(ph.category || '').trim().toLowerCase() === category.toLowerCase() &&
+        String(ph.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
+        Number(ph.cp) === cp && Number(ph.mrp || ph.sp) === mrp && Number(ph.sp) === sp;
+
+      let targetCode = sameItem(purchaseEntry) ? oldCode : '';
+      if (!targetCode) {
+        const exactExisting = products.find(p =>
+          String(p.name || '').trim().toLowerCase() === productName.toLowerCase() &&
+          String(p.category || '').trim().toLowerCase() === category.toLowerCase() &&
+          String(p.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
+          Number(p.cp) === cp && Number(p.mrp || p.sp) === mrp && Number(p.sp) === sp
+        );
+        targetCode = exactExisting ? String(exactExisting.code) : generateUniqueCode(cp, productName);
+      }
+
+      purchaseEntry.purchaseDate = purchaseDate;
+      purchaseEntry.code = targetCode;
+      purchaseEntry.name = productName;
+      purchaseEntry.category = category;
+      purchaseEntry.itemType = itemType;
+      purchaseEntry.qty = qty;
+      purchaseEntry.cp = cp; purchaseEntry.mrp = mrp; purchaseEntry.sp = sp;
+      purchaseEntry.refBillNo = refBillNo; purchaseEntry.sellerName = sellerName;
+
+      editingPurchaseHistoryId = null; delete btnSaveProduct.dataset.purchaseEditId; editingExistingCodeInput.value = '';
+      recalculateInventoryFromPurchases(); saveLocal(); renderInventory(); renderStock();
+      productForm.reset(); purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
+      uniqueCodeInput.value = ''; refBillNoInput.value = ''; sellerNameInput.value = ''; barcodeSvg.innerHTML = ''; btnSaveProduct.disabled = true; btnSaveProduct.textContent = 'Save / Update Stock';
+      alert(`Purchase entry updated. Code: ${targetCode}`); return;
+    }
+
+    if (editingCode) {
+      const existingIndex = products.findIndex(p => String(p.code) === String(editingCode));
+      if (existingIndex >= 0) {
+        const old = products[existingIndex];
+        const exactSame = String(old.name || '').trim().toLowerCase() === productName.toLowerCase() &&
+          String(old.category || '').trim().toLowerCase() === category.toLowerCase() &&
+          String(old.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
+          Number(old.cp) === cp && Number(old.mrp || old.sp) === mrp && Number(old.sp) === sp;
+        let targetCode = exactSame ? String(editingCode) : '';
+        if (!targetCode) {
+          const exactExisting = products.find((p,i) => i !== existingIndex &&
+            String(p.name || '').trim().toLowerCase() === productName.toLowerCase() &&
+            String(p.category || '').trim().toLowerCase() === category.toLowerCase() &&
+            String(p.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
+            Number(p.cp) === cp && Number(p.mrp || p.sp) === mrp && Number(p.sp) === sp
+          );
+          targetCode = exactExisting ? String(exactExisting.code) : generateUniqueCode(cp, productName);
+        }
+        if (targetCode !== String(editingCode)) {
+          // Move the edited master item to the new exact-item identity.
+          products[existingIndex].code = targetCode;
+          purchaseHistory.forEach(ph => { if (String(ph.code) === String(editingCode)) { ph.code = targetCode; } });
+        }
+        products[existingIndex].name = productName; products[existingIndex].category = category;
+        products[existingIndex].itemType = itemType; products[existingIndex].purchaseDate = purchaseDate;
+        products[existingIndex].qty = qty; products[existingIndex].cp = cp; products[existingIndex].mrp = mrp; products[existingIndex].sp = sp;
+        products[existingIndex].refBillNo = refBillNo; products[existingIndex].sellerName = sellerName;
+        products[existingIndex].code = targetCode; uniqueCodeInput.value = targetCode; generateBarcode(targetCode);
+        alert(`Inventory item updated. Code: ${targetCode}`);
+      }
+    } else {
+      // Keep an existing code only for an exact same item (name, category, type and prices).
+      const already = products.find(p =>
+        String(p.name || '').trim().toLowerCase() === productName.toLowerCase() &&
+        String(p.category || '').trim().toLowerCase() === category.toLowerCase() &&
+        String(p.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
+        Number(p.cp) === cp && Number(p.mrp || p.sp) === mrp && Number(p.sp) === sp
+      );
+      if(already) {
+        code = already.code;
+      } else if (!code) {
+        code = generateUniqueCode(cp, productName);
+      }
+      uniqueCodeInput.value = code;
+      generateBarcode(code);
+
+      // Auto-generated Purchase ID
+      const newPurchaseId = 'PUR-' + Date.now();
+
+      purchaseHistory.push({
+        id: Date.now(),
+        purchaseId: newPurchaseId,
+        purchaseDate: purchaseDate,
+        code: code,
+        name: productName,
+        category: category,
+        itemType: itemType,
+        qty: qty,
+        cp: cp,
+        sp: sp,
+        mrp: mrp,
+        refBillNo: refBillNo,
+        sellerName: sellerName
+      });
+
+      const existingIndex = products.findIndex(p => String(p.code) === String(code));
+      if(existingIndex >= 0){
+        products[existingIndex].name = productName;
+        products[existingIndex].category = category;
+        products[existingIndex].itemType = itemType;
+        products[existingIndex].purchaseDate = purchaseDate;
+        products[existingIndex].qty += qty;
+        products[existingIndex].cp = cp;
+        products[existingIndex].mrp = mrp;
+        products[existingIndex].sp = sp;
+        products[existingIndex].refBillNo = refBillNo;
+        products[existingIndex].sellerName = sellerName;
+        alert(`Product "${productName}" stock updated (+${qty}).`);
+      } else {
+        products.push({
+          code: code,
+          name: productName,
+          category: category,
+          itemType: itemType,
+          purchaseDate: purchaseDate,
+          qty: qty,
+          cp: cp,
+          mrp: mrp,
+          sp: sp,
+          refBillNo: refBillNo,
+          sellerName: sellerName
+        });
+        alert(`New product "${productName}" added to inventory.`);
+      }
+    }
+
+    saveLocal(); 
+    renderInventory();
+    renderStock();
+
+    productForm.reset();
+    editingExistingCodeInput.value = "";
+    delete btnSaveProduct.dataset.purchaseEditId;
+    purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
+    uniqueCodeInput.value = "";
+    refBillNoInput.value = "";
+    sellerNameInput.value = "";
+    barcodeSvg.innerHTML = "";
+    btnSaveProduct.disabled = true;
+  });
+
+  btnClearProductForm.addEventListener('click', e => {
+    e.preventDefault();
+    editingPurchaseHistoryId = null;
+    delete btnSaveProduct.dataset.purchaseEditId;
+    productForm.reset();
+    editingExistingCodeInput.value = "";
+    purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
+    uniqueCodeInput.value = "";
+    refBillNoInput.value = "";
+    sellerNameInput.value = "";
+    barcodeSvg.innerHTML = "";
+    btnSaveProduct.disabled = true;
+  });
+
+  searchInventory.addEventListener('input', () => {
+    renderInventory(searchInventory.value.trim());
+  });
+
+  function renderInventory(searchText = '') {
+    populateCategoryLists();
+
+    let html = '';
+    const lowerSearch = searchText.toLowerCase();
+    categories.forEach(cat => {
+      const catProducts = products.filter(p => (p.category.toLowerCase() === cat.toLowerCase()) &&
+        (p.name.toLowerCase().includes(lowerSearch) || String(p.code).toLowerCase().includes(lowerSearch))
+      );
+      if(catProducts.length === 0) return;
+      html += `<section><h3 style="font-size:0.9rem; margin: 10px 0 5px 0;">${cat} (${catProducts.length})</h3><table><thead><tr>
+        <th>Code</th><th>Name</th><th>Type</th><th class="num-align">Stock Qty</th><th class="num-align">Cost Price</th><th class="num-align">MRP</th><th class="num-align">Selling Price</th><th>Action</th>
+      </tr></thead><tbody>`;
+      catProducts.forEach(p=>{
+        html += `<tr>
+        <td>${p.code}</td>
+        <td>${p.name}</td>
+        <td><span style="background:#e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${p.itemType || 'Common'}</span></td>
+        <td class="num-align"><strong>${p.qty}</strong></td>
+        <td class="num-align">${formatINR(p.cp)}</td>
+        <td class="num-align">${formatINR(p.mrp)}</td>
+        <td class="num-align">${formatINR(p.sp)}</td>
+        <td>
+          <button type="button" onclick="editProductCode('${String(p.code).replace(/'/g,"\\'")}')" style="margin:0; padding:2px 6px;">Edit</button>
+          <button type="button" class="danger-btn" onclick="deleteMasterProduct('${String(p.code).replace(/'/g,"\\'")}')" style="margin:0; padding:2px 6px;">Delete</button>
+        </td>
+        </tr>`;
+      });
+      html += '</tbody></table></section>';
+    });
+    inventoryProductList.innerHTML = html || '<p>No items found.</p>';
+  }
+
+  window.editProductCode = (code) => {
+    const prod = products.find(p=>String(p.code)===code);
+    if(!prod) return alert("Product not found");
+    editingExistingCodeInput.value = prod.code;
+    productCategoryInput.value = prod.category;
+    productNameInput.value = prod.name;
+    itemTypeSelect.value = prod.itemType || "Common";
+    productQtyInput.value = prod.qty;
+    costPriceInput.value = prod.cp;
+    mrpInput.value = prod.mrp;
+    sellingPriceInput.value = prod.sp;
+    refBillNoInput.value = prod.refBillNo || '';
+    sellerNameInput.value = prod.sellerName || '';
+    uniqueCodeInput.value = prod.code;
+    generateBarcode(prod.code);
+    validateSellingPrice();
+  };
+
+  // Delete option in master inventory
+  window.deleteMasterProduct = (code) => {
+    const prod = products.find(p => String(p.code) === code);
+    if (!prod) return alert("Product not found");
+
+    if (confirm(`Are you sure you want to delete product "${prod.name}" (${prod.code}) from Master Inventory?`)) {
+      products = products.filter(p => String(p.code) !== code);
+      saveLocal();
+      renderInventory();
+      alert(`Product ${prod.name} removed from master inventory.`);
+    }
+  };
+
+  const stockTableBody = document.getElementById('stockTableBody');
+  const searchStockInput = document.getElementById('searchStock');
+  const stockQtyTotal = document.getElementById('stockQtyTotal');
+  const stockCPTotal = document.getElementById('stockCPTotal');
+  const btnDownloadStock = document.getElementById('btnDownloadStock');
+  searchStockInput.addEventListener('input', () => {
+    renderStock(searchStockInput.value.trim());
+  });
+
+  function getWeekendRowClass(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(`${dateStr}T00:00:00`);
+    if (isNaN(d.getTime())) return '';
+    const day = d.getDay();
+    return day === 0 ? 'weekend-sunday' : (day === 6 ? 'weekend-saturday' : '');
+  }
+
+  function renderStock(filter = '') {
+    const filterLower = filter.toLowerCase();
+    let totalQty=0, totalCP=0;
+    let html = '';
+    let serial = 1;
+
+    const filtered = purchaseHistory.filter(ph => 
+      ph.name.toLowerCase().includes(filterLower) ||
+      ph.code.toLowerCase().includes(filterLower) ||
+      ph.category.toLowerCase().includes(filterLower) ||
+      (ph.sellerName && ph.sellerName.toLowerCase().includes(filterLower)) ||
+      (ph.purchaseId && ph.purchaseId.toLowerCase().includes(filterLower))
+    ).sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+
+    filtered.forEach(ph => {
+      const rowTotalCP = ph.cp * ph.qty;
+      totalQty += ph.qty;
+      totalCP += rowTotalCP;
+
+      const purchaseWeekendClass = getWeekendRowClass(ph.purchaseDate);
+      html += `<tr class="${purchaseWeekendClass}">
+        <td>${serial++}</td>
+        <td><strong>${ph.purchaseId || ('PUR-' + ph.id)}</strong></td>
+        <td>${ph.purchaseDate || '-'}</td>
+        <td>${ph.code}</td>
+        <td>${ph.name}</td>
+        <td>${ph.category}</td>
+        <td>${ph.itemType || 'Common'}</td>
+        <td>${ph.sellerName || '-'}</td>
+        <td>${ph.refBillNo || '-'}</td>
+        <td class="num-align">${ph.qty}</td>
+        <td class="num-align">${formatINR(ph.cp)}</td>
+        <td class="num-align">${formatINR(ph.sp)}</td>
+        <td class="num-align">${formatINR(rowTotalCP)}</td>
+        <td>
+            <button type="button" onclick="editPurchaseHistoryLog('${String(ph.purchaseId || ('PUR-' + ph.id)).replace(/'/g, "\\'")}')" style="margin:0; padding:2px 6px;">Edit</button>
+            <button type="button" class="danger-btn" onclick="deletePurchaseHistoryLog('${String(ph.purchaseId || ('PUR-' + ph.id)).replace(/'/g, "\\'")}')" style="margin:0; padding:2px 6px;">Delete</button>
+        </td>
+      </tr>`;
+    });
+
+    stockTableBody.innerHTML = html || `<tr><td colspan="14" style="text-align:center;">No purchase logs found.</td></tr>`;
+    stockQtyTotal.textContent = totalQty;
+    stockCPTotal.textContent = totalCP.toFixed(2);
+  }
+
+  // Edit Purchase History using the same full form as Inventory Setup.
+  window.editPurchaseHistoryLog = (purchaseId) => {
+    const token = String(purchaseId);
+    const ph = purchaseHistory.find(item =>
+      String(item.purchaseId || ('PUR-' + item.id)) === token
+    );
+    if (!ph) return alert("Purchase entry not found.");
+
+    editingPurchaseHistoryId = String(ph.purchaseId || ('PUR-' + ph.id));
+    btnSaveProduct.dataset.purchaseEditId = editingPurchaseHistoryId;
+    editingExistingCodeInput.value = "";
+    uniqueCodeInput.value = ph.code || "";
+    productCategoryInput.value = ph.category || "Uncategorized";
+    productNameInput.value = ph.name || "";
+    itemTypeSelect.value = ph.itemType || "Common";
+    purchaseDateInput.value = ph.purchaseDate || (new Date()).toISOString().slice(0,10);
+    productQtyInput.value = ph.qty ?? 1;
+    costPriceInput.value = ph.cp ?? 0;
+    mrpInput.value = ph.mrp ?? ph.sp ?? 0;
+    sellingPriceInput.value = ph.sp ?? 0;
+    refBillNoInput.value = ph.refBillNo || "";
+    sellerNameInput.value = ph.sellerName || "";
+    generateBarcode(ph.code || "");
+    validateSellingPrice();
+    btnSaveProduct.disabled = false;
+    btnSaveProduct.textContent = 'Update Purchase / Stock';
+
+    document.querySelector('nav.tabs button[data-tab="inventory"]').click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Delete Purchase History option
+  window.deletePurchaseHistoryLog = (purchaseId) => {
+    const token = String(purchaseId);
+    const ph = purchaseHistory.find(item =>
+      String(item.purchaseId || ('PUR-' + item.id)) === token
+    );
+    if (!ph) return alert("Purchase entry not found.");
+
+    if (confirm(`Are you sure you want to delete purchase log ${ph.purchaseId || ph.code}? Stock quantity will be re-calculated.`)) {
+      purchaseHistory = purchaseHistory.filter(item =>
+        String(item.purchaseId || ('PUR-' + item.id)) !== token
+      );
+      recalculateInventoryFromPurchases();
+      saveLocal();
+      renderStock();
+      renderInventory();
+      alert("Purchase entry deleted successfully.");
+    }
+  };
+
+  btnDownloadStock.addEventListener('click', () => {
+    const headers = [["Sr", "Purchase ID", "Purchase Date", "Code", "Name", "Category", "Item Type", "Seller", "Ref Bill", "Qty Added", "Cost Price", "Selling Price", "Total Cost"]];
+    const data = purchaseHistory.map((ph, i)=>[
+      i+1, ph.purchaseId || ('PUR-' + ph.id), ph.purchaseDate || '', ph.code, ph.name, ph.category, ph.itemType || 'Common', ph.sellerName || '', ph.refBillNo || '', ph.qty, ph.cp, ph.sp, (ph.cp * ph.qty).toFixed(2)
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet(headers.concat(data));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Purchase History");
+    XLSX.writeFile(wb, "Gensworld_Purchase_History.xlsx");
+  });
+
+  const invoiceArea = document.getElementById('invoiceArea');
+  const soldTodayTotalSpan = document.getElementById('soldTodayTotal');
+  window.editTargetInvoice = null;
+
+  function openNewBillingPopup(invoiceToEdit = null){
+    const today = (new Date()).toISOString().slice(0,10);
+    const todayInvoices = invoices.filter(inv => inv.date === today);
+    const totalSold = todayInvoices.reduce((acc,i)=> acc + calculateInvoiceTotal(i), 0);
+    soldTodayTotalSpan.textContent = totalSold.toFixed(2);
+
+    let invoiceItems = [];
+    let discountAmount = 0;
+    let cashPay = 0;
+    let onlinePay = 0;
+    window.editTargetInvoice = invoiceToEdit;
+
+    if (invoiceToEdit) {
+        invoiceToEdit.items.forEach(item => {
+            const product = products.find(p => String(p.code) === String(item.code));
+            if (product) product.qty += item.qty;
+        });
+        
+        invoiceItems = JSON.parse(JSON.stringify(invoiceToEdit.items));
+        const subTotal = invoiceItems.reduce((a,i)=>a+i.sp*i.qty,0);
+        const netTotal = calculateInvoiceTotal(invoiceToEdit);
+        discountAmount = subTotal - netTotal;
+        cashPay = invoiceToEdit.cashAmount !== undefined ? invoiceToEdit.cashAmount : (invoiceToEdit.paymentMethod === 'Online' ? 0 : netTotal);
+        onlinePay = invoiceToEdit.onlineAmount !== undefined ? invoiceToEdit.onlineAmount : (invoiceToEdit.paymentMethod === 'Online' ? netTotal : 0);
+    }    const billingDateValue = invoiceToEdit?.date || today;
+
+    let html = `<h3 style="margin-top:0; font-size: 0.95rem;">${invoiceToEdit ? 'Edit Invoice ID: ' + invoiceToEdit.id : 'Create New Invoice'}</h3>
+
+      <div style="display:flex; gap: 12px; align-items: flex-end;">
+        <div style="flex:1;">
+            <label for="billingDate">Sale Date</label>
+            <input type="date" id="billingDate" value="${billingDateValue}" required />
+        </div>
+        <div style="flex:2;">
+            <label for="billingSearchInput">Search Product (Code / Name / Category)</label>
+            <input type="text" id="billingSearchInput" list="productDatalist" placeholder="Start typing code, name, or category..." autocomplete="off" />
+            <datalist id="productDatalist"></datalist>
+        </div>
+      </div>
+
+      <div id="selectedItemsList" style="margin-top: 10px;">
+        <h4 style="margin: 5px 0; font-size: 0.85rem;">Items in Cart:</h4>
+        <ul id="cartList" style="list-style: none; padding: 0; margin: 0;"></ul>
+      </div>
+      
+      <div class="discount-section">
+        <div>
+          <label for="discountFlat">Manual Extra Discount (₹)</label>
+          <input type="number" id="discountFlat" value="${Math.round(discountAmount)}" / min="-999999999" step="1" inputmode="numeric">
+        </div>
+        <div>
+          <label for="discountPercent">Discount (%)</label>
+          <input type="number" id="discountPercent" min="0" max="100" step="1" value="0" />
+        </div>
+      </div>
+
+      <h4 style="margin: 5px 0; font-size: 0.9rem;">Sub Total: ₹<span id="billingSubTotal">0.00</span></h4>
+      <h4 style="margin: 5px 0; font-size: 0.9rem; color: #28a745;">Offers Discount: - ₹<span id="billingOfferDiscount">0.00</span></h4>
+      <h4 style="margin: 5px 0; font-size: 0.9rem; color: #d9534f;">Total Discount: - ₹<span id="billingDiscount">0.00</span></h4>
+      <h3 style="margin-top: 8px; border-top: 1px solid #000; padding-top: 5px; font-size: 1.1rem;">NET Total: ₹<span id="billingTotal">0.00</span></h3>
+      
+      <div style="background: #f1f3f5; padding: 10px; border-radius: 4px; margin: 10px 0;">
+        <h4 style="margin: 0 0 8px 0; font-size: 0.85rem;">Payment Mode (Multiple/Split Mode)</h4>
+        <div style="display: flex; gap: 12px;">
+            <div style="flex:1;">
+                <label for="billingCashAmount">Cash (₹)</label>
+                <input type="number" id="billingCashAmount" value="${Math.round(cashPay)}" / min="0" step="1" inputmode="numeric">
+            </div>
+            <div style="flex:1;">
+                <label for="billingOnlineAmount">Online / UPI (₹)</label>
+                <input type="number" id="billingOnlineAmount" value="${Math.round(onlinePay)}" / min="0" step="1" inputmode="numeric">
+            </div>
+        </div>
+      </div>
+
+      <button id="btnSaveInvoice">${invoiceToEdit ? 'Save Changes' : 'Save & Print Receipt'}</button>
+      <button id="btnCloseInvoice" class="secondary-btn" style="margin-left: 8px;">Cancel</button>
+    `;
+    invoiceArea.innerHTML = html;
+
+    const billingDateInput = document.getElementById('billingDate');
+    const billingSearchInput = document.getElementById('billingSearchInput');
+    const productDatalist = document.getElementById('productDatalist');
+    const btnSaveInvoice = document.getElementById('btnSaveInvoice');
+    const btnCloseInvoice = document.getElementById('btnCloseInvoice');
+    const billingSubTotalSpan = document.getElementById('billingSubTotal');
+    const billingOfferDiscountSpan = document.getElementById('billingOfferDiscount');
+    const billingDiscountSpan = document.getElementById('billingDiscount');
+    const billingTotalSpan = document.getElementById('billingTotal');
+    const discountFlatInput = document.getElementById('discountFlat');
+    const discountPercentInput = document.getElementById('discountPercent');
+    const billingCashInput = document.getElementById('billingCashAmount');
+    const billingOnlineInput = document.getElementById('billingOnlineAmount');
+    const cartList = document.getElementById('cartList');
+    
+    let isUserTypingPayment = false;
+
+    function populateProductDatalist() {
+        const inStockProducts = products.filter(p => p.qty > 0 || invoiceItems.some(it => String(it.code) === String(p.code) && it.qty > 0));
+        
+        productDatalist.innerHTML = inStockProducts.map(p => {
+            return `<option value="${p.code}" label="${p.name} [${p.category}] - ${p.itemType || ''} (Qty: ${p.qty})">`;
+        }).join('');
+    }
+    
+    populateProductDatalist();
+
+    billingDateInput.addEventListener('change', () => {
+        const selectedDate = billingDateInput.value;
+        const selectedDateInvoices = invoices.filter(inv =>
+            inv.date === selectedDate &&
+            (!window.editTargetInvoice || String(inv.id) !== String(window.editTargetInvoice.id))
+        );
+        const selectedDateTotal = selectedDateInvoices.reduce(
+            (acc, inv) => acc + calculateInvoiceTotal(inv), 0
+        );
+        soldTodayTotalSpan.textContent = selectedDateTotal.toFixed(2);
+    });
+
+    billingSearchInput.addEventListener('change', (e) => {
+        const code = e.target.value.trim();
+        addItemToInvoiceByCode(code);
+        billingSearchInput.value = '';
+        billingSearchInput.focus();
+    });
+    
+    billingSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const code = billingSearchInput.value.trim();
+            if (code) addItemToInvoiceByCode(code);
+            billingSearchInput.value = '';
+            billingSearchInput.focus();
+        }
+    });
+
+    function addItemToInvoiceByCode(code) {
+        const product = products.find(p => String(p.code) === code);
+        
+        if (!product) {
+            alert(`Product with code ${code} not found.`);
+            return;
+        }
+
+        let itemInInvoice = invoiceItems.find(it => String(it.code) === code);
+        const maxQty = product.qty; 
+        
+        if (itemInInvoice) {
+            if (maxQty > 0) {
+                itemInInvoice.qty++;
+            } else {
+                alert(`Cannot add more of ${product.name}. Max stock reached.`);
+            }
+        } else {
+            if (maxQty <= 0) {
+                alert(`Product ${product.name} is out of stock.`);
+                return;
+            }
+            itemInInvoice = {
+                code: product.code, 
+                name: product.name, 
+                mrp: Number(product.mrp ?? product.sp ?? 0),
+                sp: product.sp, 
+                cp: product.cp,
+                qty: 1, 
+                discount: Math.round(Number(0) || 0)
+            };
+            invoiceItems.push(itemInInvoice);
+        }
+        
+        if (product.qty > 0) product.qty--; 
+        
+        updateCartList();
+        updateInvoiceTotal();
+        populateProductDatalist(); 
+    }
+
+    function updateCartList() {
+        const itemsHtml = invoiceItems.filter(it => it.qty > 0).map(it => {
+            const index = invoiceItems.indexOf(it);
+            const lineTotal = it.sp * it.qty;
+            const product = products.find(p => String(p.code) === String(it.code));
+            const availableStock = product ? product.qty : 0; 
+            
+            return `<li style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 5px; border-bottom: 1px dotted #eee; padding-bottom: 3px;">
+                <div style="flex-grow: 1;">${it.name} (₹${it.sp.toFixed(2)})</div>
+                <div style="width: 80px; text-align: right; margin-right: 10px;">${formatINR(lineTotal)}</div>
+                <div class="cart-qty-controls">
+                    <button data-index="${index}" data-type="decrease" style="margin-top:0; padding:1px 5px;">−</button>
+                    <input class="cart-qty-input" type="number" min="0" step="1" value="${it.qty}" data-index="${index}" data-type="qty">
+                    <button data-index="${index}" data-type="increase" style="margin-top:0; padding:1px 5px;" ${availableStock <= 0 ? 'disabled' : ''}>+</button>
+                </div>
+            </li>`;
+        }).join('');
+        
+        cartList.innerHTML = itemsHtml || `<li><em style="color:#888;">No items added yet.</em></li>`;
+        
+        [...cartList.querySelectorAll('button[data-type]')].forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = Number(e.target.getAttribute('data-index'));
+                const item = invoiceItems[idx];
+                if(!item) return;
+                const type = e.target.getAttribute('data-type');
+                const product = products.find(p => String(p.code) === String(item.code));
+                if(!product) return;
+
+                if (type === 'increase' && product.qty > 0) {
+                    item.qty++;
+                    product.qty--;
+                } else if (type === 'decrease' && item.qty > 0) {
+                    item.qty--;
+                    product.qty++;
+                }
+                
+                if (item.qty === 0) invoiceItems.splice(idx, 1);
+                
+                updateCartList();
+                updateInvoiceTotal();
+                populateProductDatalist(); 
+            });
+        });
+
+        [...cartList.querySelectorAll('input[data-type="qty"]')].forEach(input => {
+            input.addEventListener('change', (e) => {
+                const idx = Number(e.target.getAttribute('data-index'));
+                const item = invoiceItems[idx]; if(!item) return;
+                const product = products.find(p => String(p.code) === String(item.code)); if(!product) return;
+                let newQty = Math.floor(Number(e.target.value));
+                if (!Number.isFinite(newQty) || newQty < 0) newQty = 0;
+                const maxQty = item.qty + product.qty;
+                if (newQty > maxQty) newQty = maxQty;
+                product.qty += item.qty - newQty;
+                item.qty = newQty;
+                if (item.qty === 0) invoiceItems.splice(idx, 1);
+                updateCartList(); updateInvoiceTotal(); populateProductDatalist();
+            });
+        });
+    }
+
+    function calculateOfferDiscount() {
+        let totalOfferDiscount = 0;
+        invoiceItems.forEach(item => {
+            const offer = offers.find(o => String(o.code) === String(item.code));
+            if (offer && offer.qty > 0) {
+                const offerSets = Math.floor(item.qty / offer.qty);
+                if (offerSets > 0) {
+                    const standardPriceForOfferQty = offer.sp * offer.qty;
+                    const discountPerSet = standardPriceForOfferQty - offer.offerPrice;
+                    if (discountPerSet > 0) totalOfferDiscount += (discountPerSet * offerSets);
+                }
+            }
+        });
+        return totalOfferDiscount;
+    }
+
+    function calculateManualDiscount(subTotalAfterOffer) {
+        let flat = parseFloat(discountFlatInput.value) || 0;
+        let percent = parseFloat(discountPercentInput.value) || 0;
+
+        const percentDiscount = (subTotalAfterOffer * percent) / 100;
+        let calculatedDiscount = Math.max(flat, percentDiscount);
+        
+        if (calculatedDiscount > subTotalAfterOffer) calculatedDiscount = subTotalAfterOffer;
+        return calculatedDiscount;
+    }
+
+    function updateInvoiceTotal(){
+      let subTotal = 0;
+      for(const it of invoiceItems){
+        if(it.qty>0) subTotal += it.sp * it.qty;
+      }
+      
+      const offerDiscount = calculateOfferDiscount();
+      const subTotalAfterOffer = Math.max(0, subTotal - offerDiscount);
+      const manualDiscount = calculateManualDiscount(subTotalAfterOffer);
+      const overallDiscount = offerDiscount + manualDiscount;
+      const rawNetTotal = Math.max(0, subTotal - overallDiscount);
+      const netTotal = Math.ceil(rawNetTotal);
+
+      billingSubTotalSpan.textContent = subTotal.toFixed(2);
+      billingOfferDiscountSpan.textContent = offerDiscount.toFixed(2);
+      billingDiscountSpan.textContent = overallDiscount.toFixed(2);
+      billingTotalSpan.textContent = netTotal.toFixed(2);
+      btnSaveInvoice.disabled = netTotal <= 0;
+
+      if (!isUserTypingPayment) {
+        billingCashInput.value = netTotal.toFixed(2);
+        billingOnlineInput.value = "0.00";
+      }
+    }
+
+    billingCashInput.addEventListener('input', () => {
+      isUserTypingPayment = true;
+      const netTotal = parseFloat(billingTotalSpan.textContent) || 0;
+      let cashVal = parseFloat(billingCashInput.value) || 0;
+      if (cashVal > netTotal) cashVal = netTotal;
+      const autoOnline = Math.max(0, netTotal - cashVal);
+      billingOnlineInput.value = autoOnline.toFixed(2);
+    });
+
+    billingOnlineInput.addEventListener('input', () => {
+      isUserTypingPayment = true;
+      const netTotal = parseFloat(billingTotalSpan.textContent) || 0;
+      let onlineVal = parseFloat(billingOnlineInput.value) || 0;
+      if (onlineVal > netTotal) onlineVal = netTotal;
+      const autoCash = Math.max(0, netTotal - onlineVal);
+      billingCashInput.value = autoCash.toFixed(2);
+    });
+    
+    discountFlatInput.addEventListener('input', () => {
+        discountPercentInput.value = 0;
+        updateInvoiceTotal();
+    });
+    discountPercentInput.addEventListener('input', () => {
+        discountFlatInput.value = 0;
+        updateInvoiceTotal();
+    });
+
+    btnSaveInvoice.addEventListener('click', ()=>{
+      const selectedSaleDate = billingDateInput.value;
+      if (!selectedSaleDate) {
+        alert("Please select the sale date.");
+        billingDateInput.focus();
+        return;
+      }
+
+      const items = invoiceItems.filter(it => it.qty > 0);
+      if(items.length === 0){
+        alert("Please add at least one item.");
+        return;
+      }
+      
+      const subTotal = items.reduce((a,i)=>a+i.sp*i.qty,0);
+      const offerDiscount = calculateOfferDiscount();
+      const subTotalAfterOffer = Math.max(0, subTotal - offerDiscount);
+      const manualDiscount = calculateManualDiscount(subTotalAfterOffer);
+      const overallDiscount = offerDiscount + manualDiscount;
+      
+      const itemsWithDiscount = items.map((it, index) => ({
+          code: it.code, 
+          name: it.name, 
+          sp: it.sp, 
+          cp: it.cp || 0,
+          qty: it.qty, 
+          discount: Math.round(Number(index) || 0) === 0 ? overallDiscount : 0
+      }));
+
+      const netTotal = subTotal - overallDiscount;
+      let cashAmt = parseFloat(billingCashInput.value) || 0;
+      let onlineAmt = parseFloat(billingOnlineInput.value) || 0;
+
+      if (cashAmt === 0 && onlineAmt === 0) {
+        cashAmt = netTotal;
+      }
+
+      let pMode = 'Cash';
+      if (cashAmt > 0 && onlineAmt > 0) pMode = 'Split (Cash+Online)';
+      else if (onlineAmt > 0) pMode = 'Online / UPI';
+
+      let newInvoice;
+      const selectedSaleDateFinal = selectedSaleDate || today;
+
+      if(window.editTargetInvoice) {
+          const oldInvoice = window.editTargetInvoice;
+
+          // IMPORTANT: keep the original invoice number/ID unchanged during editing.
+          const preservedInvoiceId = oldInvoice.id;
+          const oldNetTotal = calculateInvoiceTotal(oldInvoice);
+
+          invoices = invoices.filter(inv => String(inv.id) !== String(preservedInvoiceId));
+
+          // Remove the old amount from the old date.
+          const oldSaleEntry = sales.find(s => s.date === oldInvoice.date);
+          if (oldSaleEntry) {
+              oldSaleEntry.amount -= oldNetTotal;
+              if (oldSaleEntry.amount <= 0) {
+                  sales = sales.filter(s => s.date !== oldInvoice.date);
+              }
+          }
+
+          newInvoice = {
+            id: preservedInvoiceId,
+            date: selectedSaleDateFinal,
+            status: "paid",
+            paymentMethod: pMode,
+            cashAmount: cashAmt,
+            onlineAmount: onlineAmt,
+            total: netTotal,
+            items: itemsWithDiscount
+          };
+      } else {
+          newInvoice = {
+            id: Date.now(),
+            date: selectedSaleDateFinal,
+            status: "paid",
+            paymentMethod: pMode,
+            cashAmount: cashAmt,
+            onlineAmount: onlineAmt,
+            total: netTotal,
+            items: itemsWithDiscount
+          };
+      }      
+      invoices.push(newInvoice);
+      
+      let todaySale = sales.find(s => s.date === newInvoice.date);
+      if(!todaySale) {
+        todaySale = {date: newInvoice.date, amount:0};
+        sales.push(todaySale);
+      }
+      todaySale.amount += netTotal;
+
+      saveLocal(); 
+      rebuiltPrintReceipt(newInvoice);
+
+      alert("Invoice processed successfully!");
+      renderDashboard();
+      renderInventory();
+      renderStock();
+      openNewBillingPopup();
+      window.editTargetInvoice = null;
+    });
+
+    btnCloseInvoice.addEventListener('click', ()=> {
+      if (window.editTargetInvoice) {
+          window.editTargetInvoice.items.forEach(item => {
+              const product = products.find(p => String(p.code) === String(item.code));
+              if (product) product.qty -= item.qty;
+          });
+          window.editTargetInvoice = null;
+      }
+      openNewBillingPopup();
+    });
+    
+    updateCartList(); 
+    updateInvoiceTotal();
+    billingSearchInput.focus();
+  }
+
+  // Updated Receipt Print aligned strictly for A6 size page format[cite: 2]
+  function rebuiltPrintReceipt(invoice) {
+    const netTotal = Math.round(calculateInvoiceTotal(invoice));
+    const subTotal = Math.round(invoice.items.reduce((a, i) => a + i.sp * i.qty, 0));
+    const discount = Math.round(subTotal - netTotal);
+    const cashAmt = Math.round(invoice.cashAmount !== undefined
+      ? invoice.cashAmount
+      : (invoice.paymentMethod === 'Online / UPI' ? 0 : netTotal));
+    const onlineAmt = Math.round(invoice.onlineAmount !== undefined
+      ? invoice.onlineAmount
+      : (invoice.paymentMethod === 'Online / UPI' ? netTotal : 0));
+
+    const printWin = window.open('', '_blank', 'width=450,height=650');
+    if (!printWin) {
+      alert('Please allow pop-ups for this POS page to print the receipt.');
+      return;
+    }
+
+    // Always get MRP from the current master product when older invoices do not
+    // already contain it. Total is Qty × Rate, exactly as requested.
+    const itemsTableRows = invoice.items.map(it => {
+      const product = products.find(p => String(p.code) === String(it.code));
+      const mrp = Number(it.mrp ?? product?.mrp ?? product?.sp ?? 0);
+      const rate = Number(it.sp ?? product?.sp ?? 0);
+      const qty = Number(it.qty || 0);
+      const lineTotal = rate * qty;
+
+      return `
+        <tr>
+          <td class="item">${String(it.name || product?.name || '').substring(0,28)}</td>
+          <td class="qty">${qty}</td>
+          <td class="money">${formatINR(mrp)}</td>
+          <td class="money">${formatINR(rate)}</td>
+          <td class="money">${formatINR(lineTotal)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    printWin.document.write(`
+      <html>
+        <head>
+          <title>Receipt #${invoice.id}</title>
+          <style>
+            @page {
+              size: 105mm 148mm;
+              margin: 0;
+            }
+
+            * { box-sizing: border-box; }
+
+            html, body {
+              width: 105mm;
+              min-height: 148mm;
+              margin: 0;
+              padding: 0;
+              background: #fff;
+            }
+
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              font-size: 10px;
+              color: #000;
+              padding: 5mm;
+            }
+
+            .center { text-align: center; }
+
+            .line {
+              border-bottom: 1px dashed #444;
+              margin: 7px 0;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              table-layout: fixed;
+            }
+
+            .items-table {
+              margin-top: 2px;
+            }
+
+            .items-table th,
+            .items-table td {
+              padding: 3px 1px;
+              font-size: 10px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+
+            .items-table th {
+              border-bottom: 1px solid #000;
+              padding-bottom: 4px;
+              font-weight: 700;
+            }
+
+            .items-table .item {
+              width: 38%;
+              text-align: left;
+            }
+
+            .items-table .qty {
+              width: 10%;
+              text-align: center;
+            }
+
+            .items-table .money {
+              width: 17.33%;
+              text-align: right;
+            }
+
+            .summary td {
+              padding: 2px 0;
+              font-size: 10px;
+            }
+
+            .summary .net {
+              font-weight: bold;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="center">
+            <h2 style="margin:0; font-size:16px; letter-spacing:0.3px;">Gens world || Fashion girls</h2>
+            <p style="margin:3px 0; font-size:10px;">Retail Store Receipt</p>
+            <p style="margin:2px 0; font-size:9px;">Date: ${invoice.date} | Invoice ID: #${invoice.id}</p>
+            <p style="margin:2px 0; font-size:9px;">Payment Mode: ${invoice.paymentMethod || 'Cash'}</p>
+          </div>
+
+          <div class="line"></div>
+
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th class="item">Item</th>
+                <th class="qty">Qty</th>
+                <th class="money">MRP</th>
+                <th class="money">Rate</th>
+                <th class="money">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsTableRows}
+            </tbody>
+          </table>
+
+          <div class="line"></div>
+
+          <table class="summary">
+            <tr>
+              <td>Sub Total:</td>
+              <td style="text-align:right;">₹${subTotal}</td>
+            </tr>
+            ${discount !== 0 ? `<tr><td>${discount > 0 ? 'Discount:' : 'Adjustment:'}</td><td style="text-align:right;">${discount > 0 ? '-₹' : '+₹'}${Math.abs(discount)}</td></tr>` : ''}
+            <tr class="net">
+              <td style="padding-top:4px;">NET PAYABLE:</td>
+              <td style="text-align:right; padding-top:4px;">₹${netTotal}</td>
+            </tr>
+            ${cashAmt > 0 ? `<tr><td>Paid via Cash:</td><td style="text-align:right;">₹${cashAmt}</td></tr>` : ''}
+            ${onlineAmt > 0 ? `<tr><td>Paid via Online/UPI:</td><td style="text-align:right;">₹${onlineAmt}</td></tr>` : ''}
+          </table>
+
+          <div class="line"></div>
+
+          <div class="center" style="margin-top:10px;">
+            <p style="margin:2px 0; font-weight:600;">Thank you for shopping with us!</p>
+          </div>
+
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                window.close();
+              }, 350);
+            };
+          <\/script>
+        </body>
+      </html>
+    `);
+    printWin.document.close();
+  }
+
+  const salesHistoryTableBody = document.querySelector('#salesHistoryTable tbody');
+  const salesDateSearch = document.getElementById('salesDateSearch');
+  const salesInvoiceSearch = document.getElementById('salesInvoiceSearch');
+  salesDateSearch.addEventListener('input', renderSalesHistory);
+  salesInvoiceSearch.addEventListener('input', renderSalesHistory);
+
+  window.printInvoiceByID = (id) => {
+    const inv = invoices.find(i => String(i.id) === String(id));
+    if (inv) rebuiltPrintReceipt(inv);
+    else alert("Invoice not found.");
+  };
+  
+  window.editInvoiceByID = (id) => {
+    const inv = invoices.find(i => String(i.id) === String(id));
+    if (inv) {
+        document.querySelector('nav.tabs button[data-tab="invoice"]').click();
+        openNewBillingPopup(inv);
+    } else {
+        alert("Invoice not found.");
+    }
+  };
+
+  window.deleteInvoiceByID = (id) => {
+    const targetInvoice = invoices.find(i => String(i.id) === String(id));
+    if (!targetInvoice) return alert("Invoice not found.");
+
+    if (confirm(`Are you sure you want to delete Invoice ID: ${id}? Stock will be restored.`)) {
+      const invTotal = calculateInvoiceTotal(targetInvoice);
+      let saleRecord = sales.find(s => s.date === targetInvoice.date);
+      if (saleRecord) {
+        saleRecord.amount -= invTotal;
+        if (saleRecord.amount <= 0) sales = sales.filter(s => s.date !== targetInvoice.date);
+      }
+
+      invoices = invoices.filter(i => String(i.id) !== String(id));
+      recalculateInventoryFromPurchases();
+      saveLocal();
+
+      alert(`Invoice ${id} deleted successfully.`);
+      renderSalesHistory();
+      renderDashboard();
+      renderInventory();
+    }
+  };
+
+  function renderSalesHistory() {
+    const dateFilter = salesDateSearch.value;
+    const searchFilter = salesInvoiceSearch.value.toLowerCase();
+    
+    let filteredInvoices = invoices.sort((a,b) => Number(b.id) - Number(a.id));
+
+    if (dateFilter) filteredInvoices = filteredInvoices.filter(inv => inv.date === dateFilter);
+
+    if (searchFilter) {
+      filteredInvoices = filteredInvoices.filter(inv => 
+        String(inv.id).includes(searchFilter) ||
+        inv.items.some(item => item.name.toLowerCase().includes(searchFilter))
+      );
+    }
+
+    let html = filteredInvoices.map(inv => {
+      const total = calculateInvoiceTotal(inv);
+      const profit = calculateInvoiceProfit(inv);
+      const itemsSummary = inv.items.map(item => `${item.name} x${item.qty}`).join(', ');
+      
+      const cPay = inv.cashAmount !== undefined ? inv.cashAmount : (inv.paymentMethod === 'Online / UPI' ? 0 : total);
+      const oPay = inv.onlineAmount !== undefined ? inv.onlineAmount : (inv.paymentMethod === 'Online / UPI' ? total : 0);
+      const pBreakdown = `Cash: ₹${Math.round(cPay)} | UPI: ₹${Math.round(oPay)}`;
+
+      const weekendClass = getWeekendRowClass(inv.date);
+      return `<tr class="${weekendClass}">
+        <td>${inv.date}</td>
+        <td>${inv.id}</td>
+        <td><span style="background:#e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${pBreakdown}</span></td>
+        <td>${itemsSummary.substring(0, 45) + (itemsSummary.length > 45 ? '...' : '')}</td>
+        <td class="num-align">${formatINR(total)}</td>
+        <td class="num-align" style="font-weight: bold; color: ${profit >= 0 ? 'green' : 'red'};">${formatINR(profit)}</td>
+        <td>
+            <button onclick="printInvoiceByID('${inv.id}')" style="margin-top:0; padding: 2px 6px;">Print</button>
+            <button onclick="editInvoiceByID('${inv.id}')" style="margin-top:0; padding: 2px 6px; background: #FFA500;">Edit</button>
+            <button class="danger-btn" onclick="deleteInvoiceByID('${inv.id}')" style="margin-top:0; padding: 2px 6px;">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+    
+    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No sales records found.</td></tr>';
+  }
+
+  /* COMBINED SALES + PURCHASE + EXPENSE IMPORT */
+  const importCombinedFile = document.getElementById('importCombinedFile');
+  const btnImportCombined = document.getElementById('btnImportCombined');
+  const btnDownloadImportTemplate = document.getElementById('btnDownloadImportTemplate');
+  const combinedImportStatus = document.getElementById('combinedImportStatus');
+
+  // Header matching is case/space/punctuation insensitive so the supplied
+  // Excel/CSV headings can be used as-is.
+  function importHeaderKey(value) {
+    return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  function importNum(value) {
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+
+    let s = String(value).trim().replace(/[₹,\s]/g, '');
+    if (!s) return 0;
+
+    // Preserve decimal points. Handle both 1,234.50 and 1.234,50 styles.
+    if (s.includes('.') && s.includes(',')) {
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+        s = s.replace(/\./g, '').replace(',', '.');
+      } else {
+        s = s.replace(/,/g, '');
+      }
+    } else if (s.includes(',')) {
+      const parts = s.split(',');
+      if (parts.length === 2 && parts[1].length <= 2) {
+        s = parts[0] + '.' + parts[1];
+      } else {
+        s = s.replace(/,/g, '');
+      }
+    }
+
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function importQty(value) {
+    return Math.max(0, Math.floor(importNum(value)));
+  }
+
+  function importDate(value) {
+    if (value === null || value === undefined || value === '') return (new Date()).toISOString().slice(0, 10);
+    if (typeof value === 'number') {
+      // Excel serial date -> YYYY-MM-DD.
+      const d = new Date(Date.UTC(1899, 11, 30) + value * 86400000);
+      return isNaN(d.getTime()) ? (new Date()).toISOString().slice(0, 10) : d.toISOString().slice(0, 10);
+    }
+    const raw = String(value).trim();
+    if (/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/.test(raw)) {
+      const parts = raw.slice(0, 10).split(/[\/-]/);
+      return `${parts[0]}-${String(parts[1]).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}`;
+    }
+    const m = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+    if (m) return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? (new Date()).toISOString().slice(0, 10) : d.toISOString().slice(0, 10);
+  }
+
+  function importRowLookup(row) {
+    const lookup = {};
+    Object.keys(row || {}).forEach(k => { lookup[importHeaderKey(k)] = row[k]; });
+    return lookup;
+  }
+
+  function importValue(row, ...headers) {
+    const lookup = row.__importLookup || importRowLookup(row);
+    for (const h of headers) {
+      const k = importHeaderKey(h);
+      if (Object.prototype.hasOwnProperty.call(lookup, k)) return lookup[k];
+    }
+    return '';
+  }
+
+  function importHasValue(row, ...headers) {
+    const v = importValue(row, ...headers);
+    return v !== null && v !== undefined && String(v).trim() !== '';
+  }
+
+  // Sales header -> purchase qty header -> purchase amount header.
+  // mode=unit means the supplied cost is per piece; mode=total means it is
+  // the total cost for the supplied quantity.
+  const COMBINED_ITEM_DEFS = [
+    ['Shirt sold QTY', 'Shirt Purchase  QTY', 'Cost/shirt', 'unit', 'Shirt'],
+    ['Pant  sold QTY', 'Pant Purchase  QTY', 'Cost/pant', 'unit', 'Pant'],
+    ['T- Shirt  sold QTY', 'T- Shirt Purchase  QTY', 'Cost/T-shirt', 'unit', 'T- Shirt'],
+    ['Shorts  sold QTY', 'Shorts Purchase  QTY', 'Cost/shorts', 'unit', 'Shorts'],
+    ['track  sold QTY', 'Track Purchase  QTY', 'Cost/track', 'unit', 'Track'],
+    ['Dhoti/lungi  sold QTY', 'Dhoti lungi purchase  QTY', 'Cost/Dhoti or lungi', 'unit', 'Dhoti/lungi'],
+    ['doti set colour  sold QTY', 'Dhoti set colour purchase  QTY', 'Dhoti set colour Total ', 'total', 'Dhoti set colour'],
+    ['Ramaraj doti set gold  sold QTY', 'Ramraj Dhoti set gold purchase  QTY', 'Ramraj Dhoti set gold amount', 'total', 'Ramaraj doti set gold'],
+    ['Ramaraj doti set white  sold QTY', 'Ramraj Dhoti set white purchase  QTY', 'Ramraj Dhoti set white Amount', 'total', 'Ramaraj doti set white'],
+    ['Inners sold local (men) sold QTY', 'Inners purchase (men) local  QTY', 'Cost/inners (men) local', 'unit', 'Inners local (men)'],
+    ['inner  sold underwear poomex (men)  sold QTY', 'inners purchase (men)  underwear poomex  QTY', 'cost/inner (men)  underwear poomex', 'unit', 'Inner underwear Poomex (men)'],
+    ['inners innerwear poomex (men) sold QTY', 'inners purchase (men) innerwear poomex  QTY', 'cost/inner (men) innerwear poomex', 'unit', 'Inners innerwear Poomex (men)'],
+    ['Top set sold QTY', 'Top set purchase  QTY', 'Top set price total', 'total', 'Top set'],
+    ['Top sold QTY', 'Top purchase  QTY', 'Top price total', 'total', 'Top'],
+    ['Crop top sold QTY', 'Crop top Purchase  QTY', 'Crop top price total', 'total', 'Crop top'],
+    ['Legging sold QTY', 'Leggings Purchase  QTY', 'Leggings price total', 'total', 'Legging'],
+    ['Patela  sold  QTY', 'Patela Purchase  QTY', 'Patela price total', 'total', 'Patela'],
+    ['Palasa sold QTY', 'Palasa Purchase  QTY', 'Palasa price total', 'total', 'Palasa'],
+    ['Shall sold QTY', 'Shall purchase  QTY', 'Shall price total', 'total', 'Shall'],
+    ['saree sold QTY', 'Saree purchase  QTY', 'Saree Amount', 'total', 'Saree'],
+    ['nighty sold QTY', 'Nighty purchase  QTY', 'Nighty Amount', 'total', 'Nighty'],
+    ['Night dress sold QTY', 'Night dress purchase qty', 'Night dress amount total', 'total', 'Night dress'],
+    ['3/4 pant sold QTY', '3/4 pant purchase  QTY', '3/4 pant total cost', 'total', '3/4 pant'],
+    ['Skirt sold QTY', 'Skirt purchase  QTY', 'Skirt Amount', 'total', 'Skirt'],
+    ['InSkirt sold QTY', 'InSkirt purchase  QTY', 'InSkirt amount', 'total', 'InSkirt'],
+    ['inners local (women) sold QTY', 'Inners purchase local (women)  QTY', 'inners purchase (women) amount', 'total', 'Inners local (women)'],
+    ['inners branded (women) sold QTY', 'underwear poomex (women) purchase  QTY', 'cost/ underwear poomex  (women) amount', 'total', 'Inners branded (women)'],
+    ['Kids coolers sold QTY', 'Coolers kids purchase Qty', 'Coolers kids purchase Amount', 'total', 'Kids coolers'],
+    ['Pavadai sattai sold QTY', 'Pavadai sattai purchase  QTY', 'Pavadai sattai Amount', 'total', 'Pavadai sattai'],
+    ['born baby set sold QTY', 'born baby wear purchase  QTY', 'cost/born baby wear purchase amount', 'total', 'Born baby set'],
+    ['kids cap (boys) sold QTY', 'kids cap (men) purchase qty', 'kids cap (men) purchase amount', 'total', 'Kids cap (boys)'],
+    ['kids cap (girls) sold QTY', 'kids cap (women) purchase qty', 'kids cap (women) purchase amount', 'total', 'Kids cap (girls)'],
+    ['coolers sold  QTY', 'Coolers purchase   QTY', 'Cost/Coolers', 'unit', 'Coolers'],
+    ['Muffler sold  QTY', 'Muffler purchase  QTY', 'Muffler Total Cost', 'total', 'Muffler'],
+    ['Scarf sold  QTY', 'Scarf purchase  QTY', 'Scarf Total price', 'total', 'Scarf'],
+    ['Shocks sold  QTY', 'Shocks purchase  QTY', 'Cost/Shocks', 'unit', 'Shocks'],
+    ['Cap sold  QTY', 'Cap purchase  QTY', 'Cap Cost', 'unit', 'Cap'],
+    ['Kerchief sold  QTY', 'KERCHIF PURCHASE  QTY', 'KERCHIF AMOUNT', 'total', 'Kerchief'],
+    ['Belt sold QTY', 'Belt purchase  QTY', 'Cost/belt', 'unit', 'Belt'],
+    ['Bunny  sold QTY', 'Bunny Purchase  QTY', 'Bunny price total', 'total', 'Bunny'],
+    ['Rain coat sold  QTY', 'Rain coat qty', 'Rain coat amount', 'total', 'Rain coat'],
+    ['TOWEL sold QTY', null, null, 'unit', 'Towel'],
+    ['Headphone', 'Headphone QTY', 'Headphone COST', 'unit', 'Headphone'],
+    ['kammal', 'KAMMAL QTY', 'kammal COST', 'unit', 'Kammal'],
+    ['nail polish', 'NAIL POLISH QTY', 'NAIL POLISH COST', 'unit', 'Nail polish'],
+    ['paniyarachatti', 'PANIYARACHATTI QTY', 'PANIYARACHATTI COST', 'unit', 'Paniyarachatti'],
+    ['chapathi kattai', 'CHAPATHI KATTAI QTY', 'CHAPATHI KATTAI COST', 'unit', 'Chapathi kattai'],
+    ['Hot box', 'Hot box qty', 'Hot box amount', 'total', 'Hot box'],
+    ['Water bottle', 'Water bottle qty', 'Water bottle amount', 'total', 'Water bottle'],
+    ['Hot mug', 'Hot mug qty', 'Hot mug amount', 'total', 'Hot mug']
+  ];
+
+  function findProductForImport(name) {
+    const key = importHeaderKey(name);
+    return products.find(p => importHeaderKey(p.name) === key) ||
+           products.find(p => importHeaderKey(p.name).includes(key) || key.includes(importHeaderKey(p.name)));
+  }
+
+  function importProductForPurchase(name, qty, cp, date) {
+    let prod = findProductForImport(name);
+    if (prod) return prod;
+
+    const safeCp = Math.max(0, cp || 0);
+    const code = generateUniqueCode(safeCp, name);
+    const category = 'Uncategorized';
+    const sp = safeCp;
+    const mrp = safeCp;
+    if (!categories.some(c => c.toLowerCase() === category.toLowerCase())) categories.push(category);
+
+    prod = { code, name, category, itemType: 'Common', purchaseDate: date, qty: 0, cp: safeCp, mrp, sp, refBillNo: '', sellerName: '' };
+    products.push(prod);
+    return prod;
+  }
+
+  function addCombinedPurchase(name, qty, amount, mode, date, rowIndex, warnings) {
+    qty = importQty(qty);
+    if (qty <= 0) return false;
+
+    // Scarf has both total price and cost per piece; total price wins when supplied.
+    let totalCost = importNum(amount);
+    if (name === 'Scarf' && totalCost <= 0) totalCost = importNum(importValue(currentImportRow, 'Scarf cost per piece')) * qty;
+    const cp = mode === 'unit' ? totalCost : (qty > 0 ? totalCost / qty : 0);
+
+    const prod = importProductForPurchase(name, qty, cp, date);
+    const idBase = Date.now() + rowIndex * 1000 + purchaseHistory.length;
+    purchaseHistory.push({
+      id: idBase,
+      purchaseId: 'PUR-IMP-' + idBase,
+      purchaseDate: date,
+      code: prod.code,
+      name: prod.name,
+      category: prod.category || 'Uncategorized',
+      itemType: prod.itemType || 'Common',
+      qty,
+      cp,
+      sp: prod.sp || cp,
+      mrp: prod.mrp || prod.sp || cp,
+      refBillNo: '',
+      sellerName: ''
+    });
+    if (cp <= 0) warnings.push(`${name}: purchase quantity ${qty} imported with ₹0 cost because no purchase amount was supplied.`);
+    return true;
+  }
+
+  let currentImportRow = null;
+
+  function buildCombinedTemplateHeaders() {
+    return [
+      'Sr', 'Mode', 'ID', 'Date', 'Code', 'Item Name', 'Category', 'Type',
+      'Cash', 'UPI', 'Profit (₹)', 'Seller', 'Ref Bill', 'Qty',
+      'Cost Price', 'Selling Price', 'Total Cost', 'Expense Remark', 'Expense Amount'
+    ];
+  }
+
+  function normalizeImportMode(value) {
+    const mode = String(value || '').trim().toLowerCase();
+    if (mode.includes('sale')) return 'SALE';
+    if (mode.includes('purchase') || mode.includes('buy')) return 'PURCHASE';
+    if (mode.includes('expense') || mode.includes('expence')) return 'EXPENSE';
+    return '';
+  }
+
+  function findOrCreateUploadProduct(row, date) {
+    const code = String(importValue(row, 'Code') || '').trim();
+    const name = String(importValue(row, 'Item Name') || '').trim();
+    let product = code ? products.find(p => String(p.code) === code) : null;
+    if (!product && name) product = findProductForImport(name);
+
+    const cp = importNum(importValue(row, 'Cost Price'));
+    const sp = importNum(importValue(row, 'Selling Price'));
+    const category = String(importValue(row, 'Category') || 'Uncategorized').trim() || 'Uncategorized';
+    const itemType = String(importValue(row, 'Type') || 'Common').trim() || 'Common';
+
+    if (product) {
+      if (cp > 0 && (!product.cp || product.cp <= 0)) product.cp = cp;
+      if (sp > 0 && (!product.sp || product.sp <= 0)) product.sp = sp;
+      if (category && (!product.category || product.category === 'Uncategorized')) product.category = category;
+      product.itemType = itemType;
+      return product;
+    }
+
+    const safeCp = Math.max(0, cp);
+    const safeSp = Math.max(0, sp || safeCp);
+    const finalCode = code || generateUniqueCode(safeCp, name || 'Imported Item');
+
+    if (!categories.some(c => c.toLowerCase() === category.toLowerCase())) categories.push(category);
+
+    product = {
+      code: finalCode,
+      name: name || finalCode,
+      category,
+      itemType,
+      purchaseDate: date,
+      qty: 0,
+      cp: safeCp,
+      mrp: safeSp,
+      sp: safeSp,
+      refBillNo: String(importValue(row, 'Ref Bill') || '').trim(),
+      sellerName: String(importValue(row, 'Seller') || '').trim()
+    };
+    products.push(product);
+    return product;
+  }
+
+  function importNewUploadTemplate(rows) {
+    let salesInvoices = 0, soldUnits = 0;
+    let purchaseRecords = 0, purchasedUnits = 0;
+    let expenseRecords = 0, expenseAmount = 0;
+    const warnings = [];
+    const salesById = {};
+
+    rows.forEach((rawRow, rowIndex) => {
+      rawRow.__importLookup = importRowLookup(rawRow);
+
+      const mode = normalizeImportMode(importValue(rawRow, 'Mode'));
+      const date = importDate(importValue(rawRow, 'Date'));
+      const qty = importQty(importValue(rawRow, 'Qty'));
+      const id = String(importValue(rawRow, 'ID') || '').trim();
+      const cash = Math.round(importNum(importValue(rawRow, 'Cash')));
+      const upi = Math.round(importNum(importValue(rawRow, 'UPI')));
+      const profit = importNum(importValue(rawRow, 'Profit (₹)'));
+      const seller = String(importValue(rawRow, 'Seller') || '').trim();
+      const refBill = String(importValue(rawRow, 'Ref Bill') || '').trim();
+      const cp = importNum(importValue(rawRow, 'Cost Price'));
+      const sp = importNum(importValue(rawRow, 'Selling Price'));
+      const totalCost = importNum(importValue(rawRow, 'Total Cost'));
+      const expenseRemark = String(importValue(rawRow, 'Expense Remark') || '').trim();
+      const expenseAmountValue = importNum(importValue(rawRow, 'Expense Amount'));
+
+      if (!mode) {
+        warnings.push(`Row ${rowIndex + 2}: Mode must be Sale, Purchase, or Expense.`);
+        delete rawRow.__importLookup;
+        return;
+      }
+
+      if (mode === 'EXPENSE') {
+        const amount = expenseAmountValue > 0 ? expenseAmountValue : totalCost;
+        if (amount > 0) {
+          expenses.push({
+            id: Date.now() + rowIndex + expenses.length,
+            date,
+            amount,
+            remark: expenseRemark || String(importValue(rawRow, 'Item Name') || '').trim() || 'Imported Expense'
+          });
+          expenseRecords++;
+          expenseAmount += amount;
+        }
+        delete rawRow.__importLookup;
+        return;
+      }
+
+      if (qty <= 0) {
+        warnings.push(`Row ${rowIndex + 2}: ${mode} skipped because Qty is 0.`);
+        delete rawRow.__importLookup;
+        return;
+      }
+
+      const product = findOrCreateUploadProduct(rawRow, date);
+
+      if (mode === 'PURCHASE') {
+        const purchaseTotal = totalCost > 0 ? totalCost : cp * qty;
+        const purchaseCp = cp > 0 ? cp : (qty ? purchaseTotal / qty : 0);
+
+        purchaseHistory.push({
+          id: Date.now() + rowIndex * 1000 + purchaseHistory.length,
+          purchaseId: id || ('PUR-IMP-' + Date.now() + '-' + (rowIndex + 1)),
+          purchaseDate: date,
+          code: product.code,
+          name: product.name,
+          category: String(importValue(rawRow, 'Category') || product.category || 'Uncategorized'),
+          itemType: String(importValue(rawRow, 'Type') || product.itemType || 'Common'),
+          qty,
+          cp: purchaseCp,
+          sp: sp > 0 ? sp : (product.sp || purchaseCp),
+          mrp: product.mrp || product.sp || purchaseCp,
+          refBillNo: refBill,
+          sellerName: seller
+        });
+        purchaseRecords++;
+        purchasedUnits += qty;
+        delete rawRow.__importLookup;
+        return;
+      }
+
+      // SALE: rows with the same ID become one invoice with multiple items.
+      const invoiceKey = id || ('IMP-SALE-' + date + '-' + (rowIndex + 1) + '-' + Date.now());
+
+      if (!salesById[invoiceKey]) {
+        salesById[invoiceKey] = {
+          id: id || invoiceKey,
+          date,
+          status: 'paid',
+          paymentMethod: upi > 0 && cash === 0 ? 'Online / UPI' :
+                          (cash > 0 && upi > 0 ? 'Split (Cash+Online)' : 'Cash'),
+          cashAmount: 0,
+          onlineAmount: 0,
+          total: 0,
+          items: []
+        };
+        invoices.push(salesById[invoiceKey]);
+        salesInvoices++;
+      }
+
+      const invoice = salesById[invoiceKey];
+      invoice.cashAmount += cash;
+      invoice.onlineAmount += upi;
+
+      const itemCode = String(importValue(rawRow, 'Code') || product.code);
+      const itemName = String(importValue(rawRow, 'Item Name') || product.name);
+      const itemSP = sp > 0 ? sp : importNum(product.sp);
+      const itemCP = cp > 0 ? cp : importNum(product.cp);
+      const existing = invoice.items.find(it => String(it.code) === itemCode);
+
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        invoice.items.push({
+          code: itemCode,
+          name: itemName,
+          mrp: importNum(product.mrp || product.sp),
+          sp: itemSP,
+          cp: itemCP,
+          qty,
+          discount: Math.round(Number(0) || 0)
+        });
+      }
+
+      // Profit is retained through CP/SP; when only Profit is supplied, derive CP.
+      if (profit > 0 && itemSP > 0 && invoice.items.length === 1) {
+        invoice.items[0].cp = Math.max(0, itemSP - profit / qty);
+      }
+
+      invoice.total = calculateInvoiceTotal(invoice);
+      soldUnits += qty;
+
+      delete rawRow.__importLookup;
+    });
+
+    Object.values(salesById).forEach(invoice => {
+      let record = sales.find(s => s.date === invoice.date);
+      if (!record) {
+        record = { date: invoice.date, amount: 0 };
+        sales.push(record);
+      }
+      record.amount += calculateInvoiceTotal(invoice);
+    });
+
+    recalculateInventoryFromPurchases();
+    saveLocal();
+    renderStock();
+    renderInventory();
+    renderSalesHistory();
+    renderExpenses();
+    renderDashboard();
+
+    return { salesInvoices, soldUnits, purchaseRecords, purchasedUnits, expenseRecords, expenseAmount, warnings };
+  }
+
+  btnImportCombined.addEventListener('click', () => {
+    const file = importCombinedFile.files[0];
+    if (!file) return alert('Please select one Excel or CSV file first.');
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        if (!rows.length) return alert('No valid rows found in the selected file.');
+
+        const result = importNewUploadTemplate(rows);
+        const warningText = result.warnings.length
+          ? `\n\nWarnings:\n- ${result.warnings.slice(0, 8).join('\n- ')}` +
+            (result.warnings.length > 8 ? `\n- ...and ${result.warnings.length - 8} more.` : '')
+          : '';
+
+        combinedImportStatus.className = 'success';
+        combinedImportStatus.textContent =
+          `Imported ${result.salesInvoices} sales invoice(s) / ${result.soldUnits} sold unit(s), ` +
+          `${result.purchaseRecords} purchase record(s) / ${result.purchasedUnits} purchased unit(s), ` +
+          `and ${result.expenseRecords} expense(s) (${formatINR(result.expenseAmount)}).`;
+
+        alert(
+          `Combined import completed successfully.\n\n` +
+          `Sales invoices: ${result.salesInvoices}\n` +
+          `Sold units: ${result.soldUnits}\n` +
+          `Purchase records: ${result.purchaseRecords}\n` +
+          `Purchased units: ${result.purchasedUnits}\n` +
+          `Expenses: ${result.expenseRecords}\n` +
+          `Expense amount: ${formatINR(result.expenseAmount)}` + warningText
+        );
+        importCombinedFile.value = '';
+      } catch (err) {
+        combinedImportStatus.className = 'warning';
+        combinedImportStatus.textContent = 'Import failed: ' + err.message;
+        alert('Error parsing/importing file: ' + err.message);
+      } finally {
+        currentImportRow = null;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  btnDownloadImportTemplate.addEventListener('click', () => {
+    const headers = buildCombinedTemplateHeaders();
+
+    // Predefine existing Inventory Setup products in the template.
+    const existingProductRows = products
+      .filter(p => p && (p.code || p.name))
+      .map((p, i) => [
+        i + 1, '', '', '', p.code || '', p.name || '',
+        p.category || '', p.itemType || 'Common', '', '', '',
+        p.sellerName || '', p.refBillNo || '', '', p.cp ?? '', p.sp ?? '',
+        '', '', ''
+      ]);
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...existingProductRows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Upload Template');
+    XLSX.writeFile(wb, 'GensWorld_Sales_Purchase_Expense_Upload_Template.xlsx');
+  });
+
+  /* CUSTOM ADVANCED REPORTS MODULE */
+  const reportTypeSelect = document.getElementById('reportTypeSelect');
+  const reportDateRangePreset = document.getElementById('reportDateRangePreset');
+  const customDateRangeBox = document.getElementById('customDateRangeBox');
+  const reportStartDate = document.getElementById('reportStartDate');
+  const reportEndDate = document.getElementById('reportEndDate');
+  const btnGenerateReport = document.getElementById('btnGenerateReport');
+  const btnExportReportExcel = document.getElementById('btnExportReportExcel');
+  const btnExportReportPDF = document.getElementById('btnExportReportPDF');
+  const reportTableTitle = document.getElementById('reportTableTitle');
+  const reportTableHead = document.getElementById('reportTableHead');
+  const reportTableBody = document.getElementById('reportTableBody');
+  const reportTableFoot = document.getElementById('reportTableFoot');
+  const reportDataTable = document.getElementById('reportDataTable');
+
+  let activeReportChart = null;
+  let activeReportChart2 = null;
+  let activeReportData = { headers: [], rows: [], footer: [], rowClasses: [] };
+
+  function initReportTab() {
+    reportDateRangePreset.addEventListener('change', () => {
+      if (reportDateRangePreset.value === 'custom') {
+        customDateRangeBox.style.display = 'block';
+        if (!reportStartDate.value) reportStartDate.value = getEarliestEntryDate();
+        if (!reportEndDate.value) reportEndDate.value = (new Date()).toISOString().slice(0, 10);
+      } else {
+        customDateRangeBox.style.display = 'none';
+      }
+    });
+
+    btnGenerateReport.onclick = generateReport;
+    btnExportReportExcel.onclick = exportReportToExcel;
+    btnExportReportPDF.onclick = exportReportToPDF;
+
+    generateReport();
+  }
+
+  function getDateRangeFilter() {
+    const preset = reportDateRangePreset.value;
+    const today = new Date();
+    let startDate = new Date();
+    let endDate = new Date();
+
+    if (preset === 'this_month') {
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (preset === 'last_month') {
+      startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+    } else if (preset === 'last_7_days') {
+      startDate = new Date(today.getTime() - 6 * 864e5);
+      endDate = today;
+    } else if (preset === 'last_30_days') {
+      startDate = new Date(today.getTime() - 29 * 864e5);
+      endDate = today;
+    } else if (preset === 'custom') {
+      const earliest = getEarliestEntryDate();
+      startDate = reportStartDate.value ? new Date(reportStartDate.value) : new Date(earliest);
+      endDate = reportEndDate.value ? new Date(reportEndDate.value) : new Date();
+    }
+
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    return { startStr, endStr };
+  }
+
+  function renderReportCharts(chartConfig1, chartConfig2 = null) {
+    if (activeReportChart) { activeReportChart.destroy(); activeReportChart = null; }
+    if (activeReportChart2) { activeReportChart2.destroy(); activeReportChart2 = null; }
+
+    const ctx1 = document.getElementById('reportChartCanvas').getContext('2d');
+    const container2 = document.getElementById('reportChartCanvas2Container');
+
+    if (chartConfig1) {
+      activeReportChart = new Chart(ctx1, {
+        type: chartConfig1.type || 'bar',
+        data: {
+          labels: chartConfig1.labels,
+          datasets: chartConfig1.datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: !!chartConfig1.title, text: chartConfig1.title || '' },
+            legend: { display: true }
+          },
+          scales: chartConfig1.scales || { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    if (chartConfig2) {
+      container2.style.display = 'block';
+      const ctx2 = document.getElementById('reportChartCanvas2').getContext('2d');
+      activeReportChart2 = new Chart(ctx2, {
+        type: chartConfig2.type || 'bar',
+        data: {
+          labels: chartConfig2.labels,
+          datasets: chartConfig2.datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: !!chartConfig2.title, text: chartConfig2.title || '' },
+            legend: { display: true }
+          },
+          scales: chartConfig2.scales || { y: { beginAtZero: true } }
+        }
+      });
+    } else {
+      container2.style.display = 'none';
+    }
+  }
+
+  function renderReportTable(title, headers, rows, footer, rowClasses = [], isOverall = false) {
+    reportTableTitle.textContent = formatTitleCase(title);
+
+    if (isOverall) {
+      reportDataTable.classList.add('overall-vlines');
+    } else {
+      reportDataTable.classList.remove('overall-vlines');
+    }
+
+    reportTableHead.innerHTML = `<tr>${headers.map(h => {
+      const isNum = !isNaN(parseFloat(h)) || h.toLowerCase().includes('amount') || h.toLowerCase().includes('cash') || h.toLowerCase().includes('online') || h.toLowerCase().includes('profit') || h.toLowerCase().includes('total') || h.toLowerCase().includes('qty') || h.toLowerCase().includes('cost') || h.toLowerCase().includes('price') || h.toLowerCase().includes('revenue');
+      return `<th class="${isNum ? 'num-align' : ''}">${formatTitleCase(h)}</th>`;
+    }).join('')}</tr>`;
+
+    if (rows.length === 0) {
+      reportTableBody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center;">No records found for the selected criteria.</td></tr>`;
+      reportTableFoot.innerHTML = '';
+      return;
+    }
+
+    reportTableBody.innerHTML = rows.map((r, i) => {
+      let clsName = rowClasses[i] || '';
+      const dateHeaderIndex = headers.findIndex(h => String(h).toLowerCase().includes('date'));
+      if (dateHeaderIndex >= 0) {
+        const weekendClass = getWeekendRowClass(r[dateHeaderIndex]);
+        if (weekendClass) clsName = `${clsName} ${weekendClass}`.trim();
+      }
+      const cls = clsName ? `class="${clsName}"` : '';
+      return `<tr ${cls}>${r.map(cell => {
+        const isNum = !isNaN(parseFloat(cell)) && isFinite(cell);
+        const cellText = isNum ? cell : formatTitleCase(cell);
+        return `<td class="${isNum ? 'num-align' : ''}">${cellText}</td>`;
+      }).join('')}</tr>`;
+    }).join('');
+
+    if (footer && footer.length > 0) {
+      reportTableFoot.innerHTML = `<tr>${footer.map(f => {
+        const isNum = !isNaN(parseFloat(f)) && isFinite(f);
+        const fText = isNum ? f : formatTitleCase(f);
+        return `<th class="${isNum ? 'num-align' : ''}">${fText}</th>`;
+      }).join('')}</tr>`;
+    } else {
+      reportTableFoot.innerHTML = '';
+    }
+  }
+
+  function generateReport() {
+    const type = reportTypeSelect.value;
+    const { startStr, endStr } = getDateRangeFilter();
+
+    let reportTitle = "";
+    let headers = [];
+    let rows = [];
+    let footer = [];
+    let chartConfig1 = null;
+    let chartConfig2 = null;
+    let rowClasses = [];
+    let isOverall = false;
+
+    if (type === 'monthly_custom') {
+      const catList = categories;
+      reportTitle = `Monthly Report (Purchased & Sales Items Category Wise)`;
+
+      // Dynamic header per category showing Sold Qty & Purchased Qty
+      headers = ["Month-Year", "Cash", "Online", "Total", "Profit", "Purchase", "Rent"];
+      catList.forEach(c => {
+        headers.push(`${c} (Sold Qty)`, `${c} (Pur Qty)`);
+      });
+
+      const monthMap = {};
+      invoices.forEach(inv => {
+        if (inv.date >= startStr && inv.date <= endStr) {
+          const m = inv.date.slice(0, 7);
+          if (!monthMap[m]) {
+            monthMap[m] = { cash: 0, online: 0, total: 0, profit: 0, purchase: 0, rent: 0, catSoldMap: {}, catPurMap: {} };
+            catList.forEach(c => { monthMap[m].catSoldMap[c] = 0; monthMap[m].catPurMap[c] = 0; });
+          }
+          const invTot = calculateInvoiceTotal(inv);
+          const invProf = calculateInvoiceProfit(inv);
+          const cPay = inv.cashAmount !== undefined ? inv.cashAmount : (inv.paymentMethod === 'Online / UPI' ? 0 : invTot);
+          const oPay = inv.onlineAmount !== undefined ? inv.onlineAmount : (inv.paymentMethod === 'Online / UPI' ? invTot : 0);
+
+          monthMap[m].cash += cPay;
+          monthMap[m].online += oPay;
+          monthMap[m].total += invTot;
+          monthMap[m].profit += invProf;
+
+          inv.items.forEach(it => {
+            const prod = products.find(p => String(p.code) === String(it.code));
+            const cat = prod ? prod.category : 'Uncategorized';
+            const matchedCat = catList.find(c => c.toLowerCase() === cat.toLowerCase()) || 'Uncategorized';
+            if (!monthMap[m].catSoldMap[matchedCat]) monthMap[m].catSoldMap[matchedCat] = 0;
+            monthMap[m].catSoldMap[matchedCat] += it.qty;
+          });
+        }
+      });
+
+      purchaseHistory.forEach(ph => {
+        if (ph.purchaseDate >= startStr && ph.purchaseDate <= endStr) {
+          const m = ph.purchaseDate.slice(0, 7);
+          if (!monthMap[m]) {
+            monthMap[m] = { cash: 0, online: 0, total: 0, profit: 0, purchase: 0, rent: 0, catSoldMap: {}, catPurMap: {} };
+            catList.forEach(c => { monthMap[m].catSoldMap[c] = 0; monthMap[m].catPurMap[c] = 0; });
+          }
+          monthMap[m].purchase += (ph.cp * ph.qty);
+
+          const matchedCat = catList.find(c => c.toLowerCase() === ph.category.toLowerCase()) || 'Uncategorized';
+          if (!monthMap[m].catPurMap[matchedCat]) monthMap[m].catPurMap[matchedCat] = 0;
+          monthMap[m].catPurMap[matchedCat] += ph.qty;
+        }
+      });
+
+      const sortedMonths = Object.keys(monthMap).sort();
+      let totCash=0, totOnline=0, totTotal=0, totProfit=0, totPurchase=0;
+      let colSoldTotals = catList.map(() => 0);
+      let colPurTotals = catList.map(() => 0);
+
+      rows = sortedMonths.map(m => {
+        const obj = monthMap[m];
+        totCash += obj.cash; totOnline += obj.online; totTotal += obj.total; totProfit += obj.profit; totPurchase += obj.purchase;
+        
+        const catCols = [];
+        catList.forEach((c, idx) => {
+          const sq = obj.catSoldMap[c] || 0;
+          const pq = obj.catPurMap[c] || 0;
+          colSoldTotals[idx] += sq;
+          colPurTotals[idx] += pq;
+          catCols.push(sq, pq);
+        });
+
+        return [m, obj.cash.toFixed(2), obj.online.toFixed(2), obj.total.toFixed(2), obj.profit.toFixed(2), obj.purchase.toFixed(2), "0.00", ...catCols];
+      });
+
+      const footerCatCols = [];
+      catList.forEach((c, idx) => {
+        footerCatCols.push(colSoldTotals[idx], colPurTotals[idx]);
+      });
+
+      footer = ["Total", totCash.toFixed(2), totOnline.toFixed(2), totTotal.toFixed(2), totProfit.toFixed(2), totPurchase.toFixed(2), "0.00", ...footerCatCols];
+
+      chartConfig1 = {
+        type: 'bar',
+        title: 'Monthly Total & Profit',
+        labels: sortedMonths,
+        datasets: [
+          { label: 'Total Amount', data: sortedMonths.map(m => monthMap[m].total), backgroundColor: '#4B5FFF' },
+          { label: 'Net Profit', data: sortedMonths.map(m => monthMap[m].profit), backgroundColor: '#28a745' }
+        ]
+      };
+    } 
+    else if (type === 'sales_daily_reg') {
+      reportTitle = `Sales Report (Daily Cashflow Register)`;
+      headers = ["Date", "Cash", "GPay", "Total", "Profit"];
+
+      const dateMap = {};
+      invoices.forEach(inv => {
+        if (inv.date >= startStr && inv.date <= endStr) {
+          if (!dateMap[inv.date]) dateMap[inv.date] = { cash: 0, gpay: 0, total: 0, profit: 0 };
+          const invTot = calculateInvoiceTotal(inv);
+          const invProf = calculateInvoiceProfit(inv);
+          const cPay = inv.cashAmount !== undefined ? inv.cashAmount : (inv.paymentMethod === 'Online / UPI' ? 0 : invTot);
+          const oPay = inv.onlineAmount !== undefined ? inv.onlineAmount : (inv.paymentMethod === 'Online / UPI' ? invTot : 0);
+
+          dateMap[inv.date].cash += cPay;
+          dateMap[inv.date].gpay += oPay;
+          dateMap[inv.date].total += invTot;
+          dateMap[inv.date].profit += invProf;
+        }
+      });
+
+      const sortedDates = Object.keys(dateMap).sort();
+      let totCash=0, totGpay=0, totTotal=0, totProfit=0;
+
+      rows = sortedDates.map(d => {
+        const c = dateMap[d].cash;
+        const g = dateMap[d].gpay;
+        const t = dateMap[d].total;
+        const p = dateMap[d].profit;
+        totCash += c; totGpay += g; totTotal += t; totProfit += p;
+        return [d, c.toFixed(2), g.toFixed(2), t.toFixed(2), p.toFixed(2)];
+      });
+
+      footer = ["Total", totCash.toFixed(2), totGpay.toFixed(2), totTotal.toFixed(2), totProfit.toFixed(2)];
+
+      chartConfig1 = {
+        type: 'bar',
+        title: 'Daily Cashflow Breakdown',
+        labels: sortedDates,
+        datasets: [
+          { label: 'Daily Amount Total', data: sortedDates.map(d => dateMap[d].total), backgroundColor: '#28a745' },
+          { label: 'Cash', data: sortedDates.map(d => dateMap[d].cash), backgroundColor: '#17a2b8' },
+          { label: 'GPay/Online', data: sortedDates.map(d => dateMap[d].gpay), backgroundColor: '#6f42c1' }
+        ]
+      };
+    }
+    else if (type === 'purchase_reg') {
+      reportTitle = `Purchase Report (Stock & Procurement Register)`;
+      headers = [
+        "Date", "Stock Purchase Category", "Item Code", "Name Of Item", "Total Items", 
+        "Bill (Receipt Ref)", "Total Purchase Over Cash", "Purchase Over Online", 
+        "Purchase Qty", "Total Cost On Item", "Cost Per Piece"
+      ];
+
+      let filteredPurchases = purchaseHistory.filter(ph => 
+        ph.purchaseDate >= startStr && ph.purchaseDate <= endStr
+      ).sort((a,b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
+
+      let totItems = 0, totCashPurchases = 0, totOnlinePurchases = 0, totCost = 0;
+
+      rows = filteredPurchases.map(ph => {
+        const totalCost = ph.cp * ph.qty;
+        totItems += ph.qty;
+        totCost += totalCost;
+        totCashPurchases += totalCost; 
+
+        return [
+          ph.purchaseDate, ph.category, ph.code, ph.name, ph.qty, 
+          ph.refBillNo || `REF-${ph.id || 'N/A'}`, totalCost.toFixed(2), "0.00", 
+          ph.qty, totalCost.toFixed(2), ph.cp.toFixed(2)
+        ];
+      });
+
+      footer = ["Total", "-", "-", "-", totItems, "-", totCashPurchases.toFixed(2), "0.00", totItems, totCost.toFixed(2), "-"];
+
+      chartConfig1 = {
+        type: 'line',
+        title: 'Purchase Expenditure Log',
+        labels: filteredPurchases.map(p => p.purchaseDate),
+        datasets: [{
+          label: 'Purchase Expenditure',
+          data: filteredPurchases.map(p => (p.cp * p.qty)),
+          borderColor: '#d9534f',
+          fill: false
+        }]
+      };
+    }
+    else if (type === 'sales_perf') {
+      reportTitle = `Sales Performance (Daily Product Profit & Qty)`;
+
+      // Removed Item Sold Price and Added Profit
+      headers = ["Date", "Item Code & Name", "Item Sold Qty", "Profit", "Total Revenue"];
+
+      const itemQtyMap = {};
+      const itemProfitMap = {};
+      const dateSalesMap = {};
+      const perfRows = [];
+      let grandQty = 0, grandRev = 0, grandProfit = 0;
+
+      invoices.forEach(inv => {
+        if (inv.date >= startStr && inv.date <= endStr) {
+          const invTot = calculateInvoiceTotal(inv);
+          if (!dateSalesMap[inv.date]) dateSalesMap[inv.date] = 0;
+          dateSalesMap[inv.date] += invTot;
+
+          inv.items.forEach(it => {
+            const totalItemRev = it.sp * it.qty;
+            const itemCost = (it.cp || 0) * it.qty;
+            const itemProf = totalItemRev - itemCost;
+
+            grandQty += it.qty;
+            grandRev += totalItemRev;
+            grandProfit += itemProf;
+
+            const itemKey = `${it.code} - ${it.name}`;
+            if (!itemQtyMap[itemKey]) { itemQtyMap[itemKey] = 0; itemProfitMap[itemKey] = 0; }
+            itemQtyMap[itemKey] += it.qty;
+            itemProfitMap[itemKey] += itemProf;
+
+            perfRows.push([
+              inv.date,
+              itemKey,
+              it.qty,
+              itemProf.toFixed(2),
+              totalItemRev.toFixed(2)
+            ]);
+          });
+        }
+      });
+
+      rows = perfRows.sort((a,b) => a[0].localeCompare(b[0]));
+      footer = ["Total", "-", grandQty, grandProfit.toFixed(2), grandRev.toFixed(2)];
+
+      const itemLabels = Object.keys(itemQtyMap);
+      const itemQtyData = itemLabels.map(k => itemQtyMap[k]);
+      const itemProfitData = itemLabels.map(k => itemProfitMap[k]);
+
+      chartConfig1 = {
+        type: 'bar',
+        title: 'Chart 1: Total Sold Qty & Profit per Item',
+        labels: itemLabels.length ? itemLabels : ['No Data'],
+        datasets: [
+          { label: 'Total Qty Sold', data: itemQtyData.length ? itemQtyData : [0], backgroundColor: '#ffc107' },
+          { label: 'Total Profit (₹)', data: itemProfitData.length ? itemProfitData : [0], backgroundColor: '#28a745' }
+        ]
+      };
+
+      const sortedDates = Object.keys(dateSalesMap).sort();
+      chartConfig2 = {
+        type: 'line',
+        title: 'Chart 2: Daily Sales Revenue Trend',
+        labels: sortedDates.length ? sortedDates : ['No Data'],
+        datasets: [{
+          label: 'Daily Revenue (₹)',
+          data: sortedDates.length ? sortedDates.map(d => dateSalesMap[d]) : [0],
+          borderColor: '#4B5FFF',
+          fill: true,
+          backgroundColor: 'rgba(75,91,255,0.2)'
+        }]
+      };
+    }
+    else if (type === 'overall_custom') {
+      isOverall = true;
+      reportTitle = `OVERALL REPORT (Combined Sales & Purchase Transaction Ledger)`;
+      headers = [
+        "Date", "Type", "Ref / Invoice ID", "Category / Seller", "Item / Details", 
+        "Qty", "Cost (CP)", "Selling Price (SP)", "Total Amount", "Profit"
+      ];
+
+      const combined = [];
+
+      invoices.forEach(inv => {
+        if (inv.date >= startStr && inv.date <= endStr) {
+          const totalAmt = calculateInvoiceTotal(inv);
+          const totalProf = calculateInvoiceProfit(inv);
+          const itemsDesc = inv.items.map(i => `${i.name} (x${i.qty})`).join(', ');
+          const totalQty = inv.items.reduce((a,i) => a + i.qty, 0);
+
+          combined.push({
+            date: inv.date,
+            type: 'SALE',
+            ref: inv.id,
+            cat: inv.paymentMethod || 'Sales',
+            desc: itemsDesc,
+            qty: totalQty,
+            cp: (totalAmt - totalProf).toFixed(2),
+            sp: totalAmt.toFixed(2),
+            total: totalAmt,
+            profit: totalProf
+          });
+        }
+      });
+
+      purchaseHistory.forEach(ph => {
+        if (ph.purchaseDate >= startStr && ph.purchaseDate <= endStr) {
+          const totalCost = ph.cp * ph.qty;
+
+          combined.push({
+            date: ph.purchaseDate,
+            type: 'PURCHASE',
+            ref: ph.purchaseId || ('PUR-' + ph.id),
+            cat: `${ph.category} (${ph.sellerName || 'Direct'})`,
+            desc: `${ph.name} [Code: ${ph.code}]`,
+            qty: ph.qty,
+            cp: ph.cp.toFixed(2),
+            sp: ph.sp.toFixed(2),
+            total: totalCost,
+            profit: 0
+          });
+        }
+      });
+
+      combined.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+      let grandSales = 0, grandPurchases = 0, grandProfit = 0, grandQty = 0;
+
+      rows = combined.map(item => {
+        grandQty += item.qty;
+        if (item.type === 'SALE') {
+          grandSales += item.total;
+          grandProfit += item.profit;
+          rowClasses.push('row-sales');
+        } else {
+          grandPurchases += item.total;
+          rowClasses.push('row-purchase');
+        }
+
+        return [
+          item.date,
+          item.type,
+          item.ref,
+          item.cat,
+          item.desc,
+          item.qty,
+          item.cp,
+          item.sp,
+          item.total.toFixed(2),
+          item.profit ? item.profit.toFixed(2) : "0.00"
+        ];
+      });
+
+      footer = [
+        "Ledger Summary", "-", "-", "-", `Net Sales: ₹${grandSales.toFixed(2)} | Net Purchases: ₹${grandPurchases.toFixed(2)}`, 
+        grandQty, "-", "-", (grandSales - grandPurchases).toFixed(2), grandProfit.toFixed(2)
+      ];
+
+      chartConfig1 = {
+        type: 'bar',
+        title: 'Sales vs Purchase Comparison',
+        labels: ['Financial Ledger Totals'],
+        datasets: [
+          { label: 'Total Sales Revenue (₹)', data: [grandSales], backgroundColor: '#28a745' },
+          { label: 'Total Purchase Expenditure (₹)', data: [grandPurchases], backgroundColor: '#dc3545' },
+          { label: 'Net Profit Margin (₹)', data: [grandProfit], backgroundColor: '#ffc107' }
+        ]
+      };
+    }
+    else if (type === 'stock') {
+      reportTitle = `Current Stock Valuation Report`;
+      headers = ["Category", "Total Products Listed", "In-Stock Units", "Total Cost Value (CP)", "Total Selling Value (SP)", "Potential Profit Margin"];
+
+      const catStockMap = {};
+      categories.forEach(c => { catStockMap[c] = { count: 0, units: 0, costVal: 0, sellVal: 0 }; });
+
+      products.forEach(p => {
+        const cat = categories.find(c => c.toLowerCase() === p.category.toLowerCase()) || 'Uncategorized';
+        if (!catStockMap[cat]) catStockMap[cat] = { count: 0, units: 0, costVal: 0, sellVal: 0 };
+
+        catStockMap[cat].count += 1;
+        catStockMap[cat].units += p.qty;
+        catStockMap[cat].costVal += (p.cp * p.qty);
+        catStockMap[cat].sellVal += (p.sp * p.qty);
+      });
+
+      let totProd = 0, totUnits = 0, totCost = 0, totSell = 0;
+
+      rows = Object.keys(catStockMap).map(c => {
+        const obj = catStockMap[c];
+        const margin = obj.sellVal - obj.costVal;
+        totProd += obj.count;
+        totUnits += obj.units;
+        totCost += obj.costVal;
+        totSell += obj.sellVal;
+
+        return [
+          c, obj.count, obj.units, obj.costVal.toFixed(2), obj.sellVal.toFixed(2), margin.toFixed(2)
+        ];
+      });
+
+      footer = ["Total", totProd, totUnits, totCost.toFixed(2), totSell.toFixed(2), (totSell - totCost).toFixed(2)];
+
+      const catNames = Object.keys(catStockMap);
+      chartConfig1 = {
+        type: 'bar',
+        title: 'Inventory Stock Valuation by Category',
+        labels: catNames,
+        datasets: [
+          { label: 'Cost Valuation (CP)', data: catNames.map(c => catStockMap[c].costVal), backgroundColor: '#17a2b8' },
+          { label: 'Selling Valuation (SP)', data: catNames.map(c => catStockMap[c].sellVal), backgroundColor: '#28a745' }
+        ]
+      };
+    }
+
+    activeReportData = { headers, rows, footer, rowClasses };
+    renderReportCharts(chartConfig1, chartConfig2);
+    renderReportTable(reportTitle, headers, rows, footer, rowClasses, isOverall);
+  }
+
+  function exportReportToExcel() {
+    if (activeReportData.rows.length === 0) {
+      alert("No report data available to export.");
+      return;
+    }
+
+    const title = reportTypeSelect.options[reportTypeSelect.selectedIndex].text;
+    const headers = [activeReportData.headers];
+    const data = activeReportData.rows;
+    const footer = activeReportData.footer.length ? [activeReportData.footer] : [];
+
+    const sheetData = headers.concat(data).concat(footer);
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+    XLSX.writeFile(wb, `GensWorld_${reportTypeSelect.value}_Report.xlsx`);
+  }
+
+  function exportReportToPDF() {
+    if (activeReportData.rows.length === 0) {
+      alert("No report data available to export.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+
+    const title = reportTypeSelect.options[reportTypeSelect.selectedIndex].text;
+    doc.setFontSize(14);
+    doc.text(`Gens world || Fashion girls Report: ${title}`, 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 22);
+
+    doc.autoTable({
+      head: [activeReportData.headers],
+      body: activeReportData.rows,
+      foot: activeReportData.footer.length ? [activeReportData.footer] : null,
+      startY: 28,
+      theme: 'grid',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [75, 95, 255] }
+    });
+
+    doc.save(`GensWorld_${reportTypeSelect.value}_Report.pdf`);
+  }
+
+  // Window load setup
+  window.addEventListener('DOMContentLoaded', () => {
+    loadFromLocal();
+  });
+})();
+</script>
+</body>
+</html>
