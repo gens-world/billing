@@ -111,9 +111,6 @@
 <div id="login-overlay" class="login-overlay">
     <div class="login-box">
         <h2 style="font-size: 1.2rem; margin-bottom: 15px;">Gens world || Fashion girls Login</h2>
-        <label for="username">Username</label>
-        <input type="text" id="username" placeholder="Enter Username" required>
-
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Enter Password" required>
 
@@ -353,7 +350,8 @@
                         </div>
                         <div>
                             <label for="productName">Product Name</label>
-                            <input type="text" id="productName" placeholder="e.g., Slim Fit Jeans M" required>
+                            <input type="text" id="productName" list="productNameDatalist" placeholder="e.g., Slim Fit Jeans M" autocomplete="off" required>
+                            <datalist id="productNameDatalist"></datalist>
                         </div>
                         <div>
                             <label for="productCategory">Category</label>
@@ -634,8 +632,7 @@
 
 <script>
 (() => {
-  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [];
-  const LOGIN_USERNAME = "Gens_worlD";
+  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [], customers = [];
   const LOGIN_PASSWORD = "Kdha@321";
 
   const tabs = document.querySelectorAll('nav.tabs button');
@@ -657,10 +654,9 @@
   const DEFAULT_CATEGORIES = ["Shirt", "Pant", "Tshirt", "Inners", "Dothi", "Uncategorized"];
 
   function handleLogin() {
-    const usernameInput = document.getElementById('username').value;
     const passwordInput = document.getElementById('password').value;
 
-    if (usernameInput === LOGIN_USERNAME && passwordInput === LOGIN_PASSWORD) {
+    if (passwordInput === LOGIN_PASSWORD) {
       loginOverlay.style.opacity = 0;
       setTimeout(() => {
         loginOverlay.style.display = 'none';
@@ -668,14 +664,13 @@
         initApp();
       }, 500);
     } else {
-      alert("Invalid Username or Password.");
+      alert("Invalid Password.");
     }
   }
 
   document.getElementById('loginButton').addEventListener('click', handleLogin);
 
-  // Trigger login on pressing Enter in login fields
-  document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+  // Trigger login on pressing Enter in the password field
   document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
 
   const resetButton = document.getElementById('resetButton');
@@ -868,7 +863,8 @@
       categories,
       offers,
       purchaseHistory,
-      expenses
+      expenses,
+      customers
     };
   }
 
@@ -881,6 +877,7 @@
     offers = Array.isArray(data.offers) ? data.offers : [];
     purchaseHistory = Array.isArray(data.purchaseHistory) ? data.purchaseHistory : [];
     expenses = Array.isArray(data.expenses) ? data.expenses : [];
+    customers = Array.isArray(data.customers) ? data.customers : [];
 
     const todayStr = (new Date()).toISOString().slice(0,10);
     products.forEach(p => {
@@ -902,6 +899,7 @@
     offers = JSON.parse(localStorage.getItem('offers') || '[]');
     purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
     expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+    customers = JSON.parse(localStorage.getItem('customers') || '[]');
 
     const todayStr = (new Date()).toISOString().slice(0,10);
     products.forEach(p => {
@@ -923,6 +921,7 @@
     localStorage.setItem('offers', JSON.stringify(offers));
     localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
     localStorage.setItem('expenses', JSON.stringify(expenses));
+    localStorage.setItem('customers', JSON.stringify(customers));
     scheduleCloudSave();
   }
 
@@ -1053,6 +1052,7 @@
     localStorage.setItem('offers', JSON.stringify(offers));
     localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
     localStorage.setItem('expenses', JSON.stringify(expenses));
+    localStorage.setItem('customers', JSON.stringify(customers));
   }
 
   function scheduleCloudSave() {
@@ -1679,6 +1679,20 @@
     categoriesDatalist.innerHTML = categories.map(c=>`<option value="${c}">`).join('');
     invCategoryDelete.innerHTML = categories.map(c=>`<option>${c}</option>`).join('');
   }
+
+  function populateProductNameDatalist(){
+    const list = document.getElementById('productNameDatalist');
+    if (!list) return;
+    const names = [...new Map(products
+      .filter(p => String(p.name || '').trim())
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true, sensitivity: 'base' }))
+      .map(p => [String(p.name).trim().toLowerCase(), String(p.name).trim()])
+    ).values()];
+    list.innerHTML = names.map(name => {
+      const safe = name.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<option value="${safe}">`;
+    }).join('');
+  }
   
   function validateSellingPrice(){
     const cp = parseFloat(costPriceInput.value);
@@ -1782,9 +1796,33 @@
         nextSerial = 0;
     }
     
-    if (nextSerial < -999) nextSerial = -999; 
+    if (nextSerial < -999) nextSerial = -999;
 
-    return basePrefix + String(Math.abs(nextSerial)).padStart(3,'0');
+    let candidate = basePrefix + String(Math.abs(nextSerial)).padStart(3,'0');
+    let serial = Math.abs(nextSerial);
+    const usedCodes = new Set([
+      ...products.map(p => String(p.code || '')),
+      ...purchaseHistory.map(ph => String(ph.code || ''))
+    ]);
+    while (usedCodes.has(candidate)) {
+      serial++;
+      if (serial > 999) {
+        serial = 1;
+        while (usedCodes.has(basePrefix + String(serial).padStart(3,'0'))) serial++;
+      }
+      candidate = basePrefix + String(serial).padStart(3,'0');
+    }
+    return candidate;
+  }
+
+  // Product identity for barcode/code reuse is based ONLY on:
+  // Product Name + Cost Price + MRP + Selling Price.
+  // Category, Item Type, seller, bill number and purchase date do not create a new code.
+  function sameProductIdentity(a, b) {
+    return String(a?.name || '').trim().toLowerCase() === String(b?.name || '').trim().toLowerCase() &&
+      Number(a?.cp) === Number(b?.cp) &&
+      Number(a?.mrp ?? a?.sp) === Number(b?.mrp ?? b?.sp) &&
+      Number(a?.sp) === Number(b?.sp);
   }
 
   btnSaveProduct.addEventListener('click', e => {
@@ -1815,8 +1853,10 @@
 
     let code = uniqueCodeInput.value.trim();
 
-    // Purchase History Edit: preserve the code only when the edited item is still an exact match.
-    // If name/category/price/type changes, locate an existing exact item; otherwise create a new code.
+    // Purchase History Edit:
+    // Keep the existing barcode ONLY when Product Name + Cost + MRP + Selling Price
+    // are unchanged. If ANY ONE of these four changes, create a NEW unique code.
+    // Category and Item Type changes alone do NOT create a new code.
     if (editingPurchaseHistoryId !== null) {
       const editToken = String(btnSaveProduct.dataset.purchaseEditId || editingPurchaseHistoryId || '');
       const purchaseEntry = purchaseHistory.find(ph =>
@@ -1824,23 +1864,17 @@
       );
       if (!purchaseEntry) { editingPurchaseHistoryId = null; alert('Purchase entry not found.'); return; }
 
-      const oldCode = String(purchaseEntry.code || '');
-      const sameItem = (ph) => String(ph.code || '') === oldCode &&
-        String(ph.name || '').trim().toLowerCase() === productName.toLowerCase() &&
-        String(ph.category || '').trim().toLowerCase() === category.toLowerCase() &&
-        String(ph.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
-        Number(ph.cp) === cp && Number(ph.mrp || ph.sp) === mrp && Number(ph.sp) === sp;
-
-      let targetCode = sameItem(purchaseEntry) ? oldCode : '';
-      if (!targetCode) {
-        const exactExisting = products.find(p =>
-          String(p.name || '').trim().toLowerCase() === productName.toLowerCase() &&
-          String(p.category || '').trim().toLowerCase() === category.toLowerCase() &&
-          String(p.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
-          Number(p.cp) === cp && Number(p.mrp || p.sp) === mrp && Number(p.sp) === sp
-        );
-        targetCode = exactExisting ? String(exactExisting.code) : generateUniqueCode(cp, productName);
-      }
+      const oldIdentity = {
+        name: purchaseEntry.name,
+        cp: purchaseEntry.cp,
+        mrp: purchaseEntry.mrp ?? purchaseEntry.sp,
+        sp: purchaseEntry.sp
+      };
+      const newIdentity = { name: productName, cp, mrp, sp };
+      const identityUnchanged = sameProductIdentity(oldIdentity, newIdentity);
+      const targetCode = identityUnchanged
+        ? String(purchaseEntry.code || code || generateUniqueCode(cp, productName))
+        : generateUniqueCode(cp, productName);
 
       purchaseEntry.purchaseDate = purchaseDate;
       purchaseEntry.code = targetCode;
@@ -1848,33 +1882,45 @@
       purchaseEntry.category = category;
       purchaseEntry.itemType = itemType;
       purchaseEntry.qty = qty;
-      purchaseEntry.cp = cp; purchaseEntry.mrp = mrp; purchaseEntry.sp = sp;
-      purchaseEntry.refBillNo = refBillNo; purchaseEntry.sellerName = sellerName;
+      purchaseEntry.cp = cp;
+      purchaseEntry.mrp = mrp;
+      purchaseEntry.sp = sp;
+      purchaseEntry.refBillNo = refBillNo;
+      purchaseEntry.sellerName = sellerName;
 
-      editingPurchaseHistoryId = null; delete btnSaveProduct.dataset.purchaseEditId; editingExistingCodeInput.value = '';
-      recalculateInventoryFromPurchases(); saveLocal(); renderInventory(); renderStock();
-      productForm.reset(); purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
-      uniqueCodeInput.value = ''; refBillNoInput.value = ''; sellerNameInput.value = ''; barcodeSvg.innerHTML = ''; btnSaveProduct.disabled = true; btnSaveProduct.textContent = 'Save / Update Stock';
-      alert(`Purchase entry updated. Code: ${targetCode}`); return;
+      editingPurchaseHistoryId = null;
+      delete btnSaveProduct.dataset.purchaseEditId;
+      editingExistingCodeInput.value = '';
+      recalculateInventoryFromPurchases();
+      saveLocal();
+      renderInventory();
+      renderStock();
+
+      productForm.reset();
+      purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
+      uniqueCodeInput.value = '';
+      refBillNoInput.value = '';
+      sellerNameInput.value = '';
+      barcodeSvg.innerHTML = '';
+      btnSaveProduct.disabled = true;
+      btnSaveProduct.textContent = 'Save / Update Stock';
+
+      alert(identityUnchanged
+        ? `Purchase entry updated. Existing barcode kept: ${targetCode}`
+        : `Purchase entry updated. Product details changed, so a new barcode was created: ${targetCode}`);
+      return;
     }
 
     if (editingCode) {
       const existingIndex = products.findIndex(p => String(p.code) === String(editingCode));
       if (existingIndex >= 0) {
         const old = products[existingIndex];
-        const exactSame = String(old.name || '').trim().toLowerCase() === productName.toLowerCase() &&
-          String(old.category || '').trim().toLowerCase() === category.toLowerCase() &&
-          String(old.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
-          Number(old.cp) === cp && Number(old.mrp || old.sp) === mrp && Number(old.sp) === sp;
+        const exactSame = sameProductIdentity(old, { name: productName, cp, mrp, sp });
         let targetCode = exactSame ? String(editingCode) : '';
         if (!targetCode) {
-          const exactExisting = products.find((p,i) => i !== existingIndex &&
-            String(p.name || '').trim().toLowerCase() === productName.toLowerCase() &&
-            String(p.category || '').trim().toLowerCase() === category.toLowerCase() &&
-            String(p.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
-            Number(p.cp) === cp && Number(p.mrp || p.sp) === mrp && Number(p.sp) === sp
-          );
-          targetCode = exactExisting ? String(exactExisting.code) : generateUniqueCode(cp, productName);
+          // A changed identity always gets a NEW code. Do not merge it into another
+          // existing product merely because its four identity fields happen to match.
+          targetCode = generateUniqueCode(cp, productName);
         }
         if (targetCode !== String(editingCode)) {
           // Move the edited master item to the new exact-item identity.
@@ -1889,12 +1935,10 @@
         alert(`Inventory item updated. Code: ${targetCode}`);
       }
     } else {
-      // Keep an existing code only for an exact same item (name, category, type and prices).
+      // Keep an existing barcode only when the four product identity fields match.
+      // Category / Item Type changes do not create duplicates.
       const already = products.find(p =>
-        String(p.name || '').trim().toLowerCase() === productName.toLowerCase() &&
-        String(p.category || '').trim().toLowerCase() === category.toLowerCase() &&
-        String(p.itemType || 'Common').toLowerCase() === itemType.toLowerCase() &&
-        Number(p.cp) === cp && Number(p.mrp || p.sp) === mrp && Number(p.sp) === sp
+        sameProductIdentity(p, { name: productName, cp, mrp, sp })
       );
       if(already) {
         code = already.code;
@@ -1989,16 +2033,17 @@
 
   function renderInventory(searchText = '') {
     populateCategoryLists();
+    populateProductNameDatalist();
 
     let html = '';
     const lowerSearch = searchText.toLowerCase();
     categories.forEach(cat => {
       const catProducts = products.filter(p => (p.category.toLowerCase() === cat.toLowerCase()) &&
         (p.name.toLowerCase().includes(lowerSearch) || String(p.code).toLowerCase().includes(lowerSearch))
-      );
+      ).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true, sensitivity: 'base' }));
       if(catProducts.length === 0) return;
       html += `<section><h3 style="font-size:0.9rem; margin: 10px 0 5px 0;">${cat} (${catProducts.length})</h3><table><thead><tr>
-        <th>Code</th><th>Name</th><th>Type</th><th class="num-align">Stock Qty</th><th class="num-align">Cost Price</th><th class="num-align">MRP</th><th class="num-align">Selling Price</th><th>Action</th>
+        <th>Code</th><th>Name</th><th>Type</th><th class="num-align">Stock Qty</th><th class="num-align">Cost Price</th><th class="num-align">MRP</th><th class="num-align">Selling Price</th>
       </tr></thead><tbody>`;
       catProducts.forEach(p=>{
         html += `<tr>
@@ -2009,10 +2054,6 @@
         <td class="num-align">${formatINR(p.cp)}</td>
         <td class="num-align">${formatINR(p.mrp)}</td>
         <td class="num-align">${formatINR(p.sp)}</td>
-        <td>
-          <button type="button" onclick="editProductCode('${String(p.code).replace(/'/g,"\\'")}')" style="margin:0; padding:2px 6px;">Edit</button>
-          <button type="button" class="danger-btn" onclick="deleteMasterProduct('${String(p.code).replace(/'/g,"\\'")}')" style="margin:0; padding:2px 6px;">Delete</button>
-        </td>
         </tr>`;
       });
       html += '</tbody></table></section>';
@@ -2208,14 +2249,24 @@
 
     let html = `<h3 style="margin-top:0; font-size: 0.95rem;">${invoiceToEdit ? 'Edit Invoice ID: ' + invoiceToEdit.id : 'Create New Invoice'}</h3>
 
-      <div style="display:flex; gap: 12px; align-items: flex-end;">
-        <div style="flex:1;">
+      <div style="display:flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex:1; min-width:150px;">
+            <label for="billingCustomerName">Customer Name</label>
+            <input type="text" id="billingCustomerName" value="${invoiceToEdit?.customerName || ''}" placeholder="Enter customer name" autocomplete="off" list="customerNameDatalist" />
+            <datalist id="customerNameDatalist"></datalist>
+        </div>
+        <div style="flex:1; min-width:150px;">
+            <label for="billingCustomerPhone">WhatsApp Number</label>
+            <input type="tel" id="billingCustomerPhone" value="${invoiceToEdit?.customerPhone || ''}" placeholder="10-digit number" inputmode="tel" autocomplete="off" list="customerPhoneDatalist" />
+            <datalist id="customerPhoneDatalist"></datalist>
+        </div>
+        <div style="flex:1; min-width:130px;">
             <label for="billingDate">Sale Date</label>
             <input type="date" id="billingDate" value="${billingDateValue}" required />
         </div>
-        <div style="flex:2;">
+        <div style="flex:2; min-width:220px;">
             <label for="billingSearchInput">Search Product (Code / Name / Category)</label>
-            <input type="text" id="billingSearchInput" list="productDatalist" placeholder="Start typing code, name, or category..." autocomplete="off" />
+            <input type="text" id="billingSearchInput" list="productDatalist" placeholder="Select / type product name or code..." autocomplete="off" />
             <datalist id="productDatalist"></datalist>
         </div>
       </div>
@@ -2256,6 +2307,8 @@
       </div>
 
       <button id="btnSaveInvoice">${invoiceToEdit ? 'Save Changes' : 'Save & Print Receipt'}</button>
+      ${!invoiceToEdit ? '<button id="btnSaveBill" type="button" class="secondary-btn" style="margin-left: 8px;">💾 Save Bill</button>' : ''}
+      <button id="btnSendWhatsApp" type="button" class="success-btn" style="margin-left: 8px;">Send Bill via WhatsApp</button>
       <button id="btnCloseInvoice" class="secondary-btn" style="margin-left: 8px;">Cancel</button>
     `;
     invoiceArea.innerHTML = html;
@@ -2273,15 +2326,220 @@
     const discountPercentInput = document.getElementById('discountPercent');
     const billingCashInput = document.getElementById('billingCashAmount');
     const billingOnlineInput = document.getElementById('billingOnlineAmount');
+    const billingCustomerNameInput = document.getElementById('billingCustomerName');
+    const billingCustomerPhoneInput = document.getElementById('billingCustomerPhone');
+    const btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+    const btnSaveBill = document.getElementById('btnSaveBill');
     const cartList = document.getElementById('cartList');
-    
+
+    // Customer suggestions. Mobile number is the primary identifier.
+    // Suggestions come from the online-master customer table after cloud data loads,
+    // and are also available from the local cache when offline.
+    const customerNameDatalist = document.getElementById('customerNameDatalist');
+    const customerPhoneDatalist = document.getElementById('customerPhoneDatalist');
+
+    function normalizedCustomerPhone(rawPhone) {
+      const digits = String(rawPhone || '').replace(/\D/g, '');
+      return digits.length === 10 ? '91' + digits : digits;
+    }
+
+    function renderCustomerSuggestions() {
+      if (!customerNameDatalist || !customerPhoneDatalist) return;
+      const unique = new Map();
+      (Array.isArray(customers) ? customers : []).forEach(c => {
+        const name = String(c.name || '').trim();
+        const phone = normalizedCustomerPhone(c.phone);
+        if (!phone) return;
+        unique.set(phone, {name, phone});
+      });
+      customerNameDatalist.innerHTML = '';
+      customerPhoneDatalist.innerHTML = '';
+      [...unique.values()].forEach(c => {
+        if (c.name) {
+          const n = document.createElement('option');
+          n.value = c.name;
+          n.label = c.phone;
+          customerNameDatalist.appendChild(n);
+        }
+        const p = document.createElement('option');
+        p.value = c.phone.length === 12 && c.phone.startsWith('91') ? c.phone.slice(2) : c.phone;
+        p.label = c.name || 'Saved customer';
+        customerPhoneDatalist.appendChild(p);
+      });
+    }
+
+    function rememberCustomer(name, rawPhone) {
+      const phone = normalizedCustomerPhone(rawPhone);
+      const cleanName = String(name || '').trim();
+      if (!phone) return;
+      const existing = customers.find(c => normalizedCustomerPhone(c.phone) === phone);
+      if (existing) {
+        if (cleanName) existing.name = cleanName;
+      } else {
+        customers.push({ name: cleanName, phone });
+      }
+      renderCustomerSuggestions();
+    }
+
+    function findCustomerByPhone(rawPhone) {
+      const digits = String(rawPhone || '').replace(/\D/g, '');
+      if (!digits) return null;
+      const normalized = normalizedCustomerPhone(digits);
+      return customers.find(c => normalizedCustomerPhone(c.phone) === normalized) || null;
+    }
+
+    function fillCustomerFromPhone() {
+      const found = findCustomerByPhone(billingCustomerPhoneInput.value);
+      if (found && found.name) billingCustomerNameInput.value = found.name;
+    }
+
+    function fillCustomerFromName() {
+      const typed = String(billingCustomerNameInput.value || '').trim().toLowerCase();
+      if (!typed) return;
+      const found = customers.find(c => String(c.name || '').trim().toLowerCase() === typed);
+      if (found && found.phone) {
+        const digits = String(found.phone).replace(/\D/g, '');
+        billingCustomerPhoneInput.value = digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits;
+      }
+    }
+
+    billingCustomerPhoneInput.addEventListener('input', fillCustomerFromPhone);
+    billingCustomerNameInput.addEventListener('change', fillCustomerFromName);
+    billingCustomerNameInput.addEventListener('input', () => {
+      const typed = String(billingCustomerNameInput.value || '').trim().toLowerCase();
+      if (!typed) return;
+      const found = customers.find(c => String(c.name || '').trim().toLowerCase().startsWith(typed));
+      if (found && found.phone && !billingCustomerPhoneInput.value.trim()) {
+        const digits = String(found.phone).replace(/\D/g, '');
+        billingCustomerPhoneInput.value = digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits;
+      }
+    });
+    renderCustomerSuggestions();
+
+    function buildCurrentInvoice() {
+      const selectedSaleDate = billingDateInput.value;
+      if (!selectedSaleDate) { alert('Please select the sale date.'); billingDateInput.focus(); return null; }
+      const items = invoiceItems.filter(it => Number(it.qty) > 0);
+      if (!items.length) { alert('Please add at least one item.'); return null; }
+
+      const subTotal = items.reduce((a,i)=>a+Number(i.sp || 0)*Number(i.qty || 0),0);
+      const offerDiscount = calculateOfferDiscount();
+      const subTotalAfterOffer = Math.max(0, subTotal - offerDiscount);
+      const manualDiscount = calculateManualDiscount(subTotalAfterOffer);
+      const overallDiscount = offerDiscount + manualDiscount;
+      const itemsWithDiscount = items.map((it, index) => ({
+        code: it.code, name: it.name, sp: it.sp, cp: it.cp || 0, qty: it.qty,
+        discount: index === 0 ? overallDiscount : 0
+      }));
+      const netTotal = Math.round(subTotal - overallDiscount);
+      let cashAmt = Math.round(parseFloat(billingCashInput.value) || 0);
+      let onlineAmt = Math.round(parseFloat(billingOnlineInput.value) || 0);
+      if (cashAmt === 0 && onlineAmt === 0) cashAmt = netTotal;
+      let pMode = 'Cash';
+      if (cashAmt > 0 && onlineAmt > 0) pMode = 'Split (Cash+Online)';
+      else if (onlineAmt > 0) pMode = 'Online / UPI';
+
+      const customerName = billingCustomerNameInput.value.trim();
+      const customerPhone = billingCustomerPhoneInput.value.trim();
+      rememberCustomer(customerName, customerPhone);
+      const selectedSaleDateFinal = selectedSaleDate || today;
+      const oldInvoice = window.editTargetInvoice;
+      const preservedInvoiceId = oldInvoice ? oldInvoice.id : Date.now();
+      if (oldInvoice) {
+        const oldNetTotal = calculateInvoiceTotal(oldInvoice);
+        invoices = invoices.filter(inv => String(inv.id) !== String(preservedInvoiceId));
+        const oldSaleEntry = sales.find(s => s.date === oldInvoice.date);
+        if (oldSaleEntry) {
+          oldSaleEntry.amount -= oldNetTotal;
+          if (oldSaleEntry.amount <= 0) sales = sales.filter(s => s.date !== oldInvoice.date);
+        }
+      }
+      const newInvoice = {
+        id: preservedInvoiceId, date: selectedSaleDateFinal, customerName, customerPhone,
+        status: 'paid', paymentMethod: pMode, cashAmount: cashAmt, onlineAmount: onlineAmt,
+        total: netTotal, items: itemsWithDiscount
+      };
+      invoices.push(newInvoice);
+      let todaySale = sales.find(s => s.date === newInvoice.date);
+      if (!todaySale) { todaySale = {date:newInvoice.date, amount:0}; sales.push(todaySale); }
+      todaySale.amount += netTotal;
+      return newInvoice;
+    }
+
+    function finishBillSave(newInvoice, shouldPrint) {
+      saveLocal();
+      if (shouldPrint) rebuiltPrintReceipt(newInvoice);
+      alert(shouldPrint ? 'Invoice processed successfully!' : 'Bill saved successfully!');
+      renderDashboard(); renderInventory(); renderStock();
+      openNewBillingPopup();
+      window.editTargetInvoice = null;
+    }
+
+    // Save & Print Receipt: saves the bill, customer and inventory, then prints.
+    btnSaveInvoice.addEventListener('click', () => {
+      const invoice = buildCurrentInvoice();
+      if (!invoice) return;
+      finishBillSave(invoice, true);
+    });
+
+    // Save Bill: saves everything without WhatsApp and without printing.
+    btnSaveBill?.addEventListener('click', () => {
+      const invoice = buildCurrentInvoice();
+      if (!invoice) return;
+      finishBillSave(invoice, false);
+    });
+
+    // WhatsApp: save the bill first, then open the prepared WhatsApp chat.
+    btnSendWhatsApp.addEventListener('click', () => {
+      const rawPhone = String(billingCustomerPhoneInput.value || '').trim();
+      if (!rawPhone) { alert('Please enter the WhatsApp number first.'); billingCustomerPhoneInput.focus(); return; }
+      let phone = rawPhone.replace(/\D/g, '');
+      if (phone.length === 10) phone = '91' + phone;
+      if (phone.length < 10 || phone.length > 15) { alert('Please enter a valid WhatsApp number. Example: 9876543210'); billingCustomerPhoneInput.focus(); return; }
+      const invoice = buildCurrentInvoice();
+      if (!invoice) return;
+
+      const visibleItems = invoice.items.filter(it => Number(it.qty) > 0);
+      const subTotal = Math.round(visibleItems.reduce((sum,it)=>sum+Number(it.sp||0)*Number(it.qty||0),0));
+      const netTotal = Math.round(calculateInvoiceTotal(invoice));
+      const discount = Math.round(subTotal - netTotal);
+      const lines = ['Gens world || Fashion girls','Bill / Sales Receipt',invoice.customerName ? 'Customer: '+invoice.customerName : '','Date: '+invoice.date,'------------------------------'].filter(Boolean);
+      visibleItems.forEach((it,index) => {
+        const amount = Math.round(Number(it.sp||0)*Number(it.qty||0));
+        lines.push(`${index+1}. ${it.name}`);
+        lines.push(`   Qty: ${it.qty} x ₹${Math.round(Number(it.sp||0))} = ₹${amount}`);
+      });
+      lines.push('------------------------------','Sub Total: ₹'+subTotal,'Discount: ₹'+discount,'NET Total: ₹'+netTotal);
+      if (invoice.cashAmount || invoice.onlineAmount) {
+        const payment=[]; if(invoice.cashAmount) payment.push('Cash ₹'+invoice.cashAmount); if(invoice.onlineAmount) payment.push('Online/UPI ₹'+invoice.onlineAmount);
+        lines.push('Payment: '+payment.join(' + '));
+      }
+      lines.push('','Thank you for shopping with us!');
+
+      // The browser can open WhatsApp with the message prepared, but ordinary
+      // web pages cannot press WhatsApp's final Send button automatically.
+      saveLocal();
+      renderDashboard(); renderInventory(); renderStock();
+      window.editTargetInvoice = null;
+      const whatsappUrl='https://api.whatsapp.com/send?phone='+phone+'&text='+encodeURIComponent(lines.join('\n'));
+      const popup=window.open(whatsappUrl,'_blank');
+      if(!popup) window.location.href=whatsappUrl;
+      openNewBillingPopup();
+    });
+
     let isUserTypingPayment = false;
 
     function populateProductDatalist() {
-        const inStockProducts = products.filter(p => p.qty > 0 || invoiceItems.some(it => String(it.code) === String(p.code) && it.qty > 0));
-        
+        const inStockProducts = products
+            .filter(p => p.qty > 0 || invoiceItems.some(it => String(it.code) === String(p.code) && it.qty > 0))
+            .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true, sensitivity: 'base' }));
+
+        // Show Product Name first, with Item Code as the secondary information.
+        // Direct Item Code entry is still supported by addItemToInvoiceByCode().
         productDatalist.innerHTML = inStockProducts.map(p => {
-            return `<option value="${p.code}" label="${p.name} [${p.category}] - ${p.itemType || ''} (Qty: ${p.qty})">`;
+            const safeName = String(p.name || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const safeCode = String(p.code || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `<option value="${safeName}" label="Code: ${safeCode} | ${p.category || ''} | Qty: ${p.qty}">`;
         }).join('');
     }
     
@@ -2317,10 +2575,12 @@
     });
 
     function addItemToInvoiceByCode(code) {
-        const product = products.find(p => String(p.code) === code);
+        const searchValue = String(code || '').trim();
+        const product = products.find(p => String(p.code) === searchValue) ||
+            products.find(p => String(p.name || '').trim().toLowerCase() === searchValue.toLowerCase());
         
         if (!product) {
-            alert(`Product with code ${code} not found.`);
+            alert(`Product "${searchValue}" not found.`);
             return;
         }
 
@@ -2563,6 +2823,8 @@
           newInvoice = {
             id: preservedInvoiceId,
             date: selectedSaleDateFinal,
+            customerName: billingCustomerNameInput.value.trim(),
+            customerPhone: billingCustomerPhoneInput.value.trim(),
             status: "paid",
             paymentMethod: pMode,
             cashAmount: cashAmt,
@@ -2574,6 +2836,8 @@
           newInvoice = {
             id: Date.now(),
             date: selectedSaleDateFinal,
+            customerName: billingCustomerNameInput.value.trim(),
+            customerPhone: billingCustomerPhoneInput.value.trim(),
             status: "paid",
             paymentMethod: pMode,
             cashAmount: cashAmt,
@@ -3035,14 +3299,18 @@
   }
 
   function importProductForPurchase(name, qty, cp, date) {
-    let prod = findProductForImport(name);
-    if (prod) return prod;
-
     const safeCp = Math.max(0, cp || 0);
-    const code = generateUniqueCode(safeCp, name);
-    const category = 'Uncategorized';
     const sp = safeCp;
     const mrp = safeCp;
+
+    // Reuse barcode only when all four identity fields match.
+    let prod = products.find(p =>
+      sameProductIdentity(p, { name, cp: safeCp, mrp, sp })
+    );
+    if (prod) return prod;
+
+    const code = generateUniqueCode(safeCp, name);
+    const category = 'Uncategorized';
     if (!categories.some(c => c.toLowerCase() === category.toLowerCase())) categories.push(category);
 
     prod = { code, name, category, itemType: 'Common', purchaseDate: date, qty: 0, cp: safeCp, mrp, sp, refBillNo: '', sellerName: '' };
