@@ -1039,19 +1039,34 @@
     const url = getCloudUrl();
     if (!url) throw new Error('Google Apps Script Web App URL is not configured.');
 
-    if (data === null) {
+    // Reads/status/ping use JSONP so they work from a local HTML file
+    // without CORS restrictions.
+    const readActions = ['get', 'ping', 'status'];
+    if (readActions.includes(String(action).toLowerCase())) {
       return await new Promise((resolve, reject) => {
         const callbackName = '__gensworld_jsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
         const script = document.createElement('script');
+        const params = new URLSearchParams();
+        params.set('action', String(action));
+        params.set('callback', callbackName);
+        if (data && typeof data === 'object') {
+          Object.keys(data).forEach(key => {
+            if (data[key] !== undefined && data[key] !== null) params.set(key, String(data[key]));
+          });
+        }
+        params.set('_', Date.now());
+
         const timeout = setTimeout(() => {
           cleanup();
-          reject(new Error('Google Sheets request timed out. Check that the Web App is deployed as “Anyone”.'));
-        }, 20000);
+          reject(new Error('Google Sheets request timed out. The Web App responded too slowly. Confirm the deployed version is current, Execute as Me, and Who has access = Anyone.'));
+        }, readActions.includes(String(action).toLowerCase()) ? 90000 : 45000);
+
         function cleanup() {
           clearTimeout(timeout);
           delete window[callbackName];
           script.remove();
         }
+
         window[callbackName] = result => {
           cleanup();
           if (!result || result.ok !== true) {
@@ -1060,23 +1075,33 @@
           }
           resolve(result);
         };
+
         script.onerror = () => {
           cleanup();
           reject(new Error('Google Sheets could not be reached. Check the Web App deployment/access setting.'));
         };
-        script.src = url + '?action=get&callback=' + encodeURIComponent(callbackName) + '&_=' + Date.now();
+
+        script.src = url + '?' + params.toString();
         document.head.appendChild(script);
       });
     }
 
-    await fetch(url, {
+    // Writes intentionally use a simple text/plain POST so the browser does
+    // not send a CORS preflight to Apps Script. The response is verified
+    // afterwards through the status JSONP request.
+    const response = await fetch(url, {
       method: 'POST',
       mode: 'no-cors',
       redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, data })
+      body: JSON.stringify({
+        action,
+        data,
+        syncId: data && data.__syncId ? data.__syncId : null
+      })
     });
-    return { ok: true, message: 'Request sent to Google Sheets.' };
+
+    return { ok: true, message: 'Request sent to Google Sheets.', response };
   }
 
   async function downloadFromGoogleSheet(showAlert = true) {
@@ -1088,7 +1113,7 @@
     }
 
     try {
-      setCloudStatus('Connecting…');
+      setCloudStatus('Connecting to Google Sheets…');
       const result = await cloudRequest('get');
       const data = result.data || {};
       const hasCloudData = !!result.hasData;
@@ -1122,12 +1147,20 @@
       return false;
     }
 
+    const syncId = 'SYNC-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    const payload = getDatabasePayload();
+    payload.__syncId = syncId;
+
     try {
       setCloudStatus('Uploading master database…');
-      const result = await cloudRequest('save', getDatabasePayload());
+      await cloudRequest('save', payload);
+
+      const verified = await verifyCloudSync(syncId);
+      if (!verified) throw new Error('Google Sheet did not confirm the saved data.');
+
       cloudInitialized = true;
-      setCloudStatus('Connected — Master database saved', true);
-      if (showAlert) alert(result.message || 'Device data uploaded to Google Sheet successfully.');
+      setCloudStatus('Connected — Master database saved ✓', true);
+      if (showAlert) alert('Device data uploaded to Google Sheet successfully.');
       return true;
     } catch (err) {
       console.error(err);
@@ -1135,6 +1168,19 @@
       if (showAlert) alert('Google Sheets upload failed: ' + (err.message || err));
       return false;
     }
+  }
+
+  async function verifyCloudSync(syncId, attempts = 8) {
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const result = await cloudRequest('status', { syncId });
+        if (result && result.ok === true && result.syncId === syncId) return true;
+      } catch (err) {
+        console.warn('Cloud sync verification attempt failed:', err);
+      }
+      await new Promise(resolve => setTimeout(resolve, 700));
+    }
+    return false;
   }
 
   async function clearGoogleSheet() {
@@ -1177,18 +1223,31 @@
       cloudSyncPending = true;
       return;
     }
+
     cloudSyncInFlight = true;
     cloudSyncPending = false;
+
     try {
       setCloudStatus('Saving…');
-      await cloudRequest('save', getDatabasePayload());
+      const syncId = 'SYNC-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+      const payload = getDatabasePayload();
+      payload.__syncId = syncId;
+
+      await cloudRequest('save', payload);
+
+      const verified = await verifyCloudSync(syncId);
+      if (!verified) throw new Error('Google Sheet did not confirm the save.');
+
       setCloudStatus('Connected — Synced ✓', true);
     } catch (err) {
       console.error(err);
       setCloudStatus('Sync failed — local cache kept', false);
     } finally {
       cloudSyncInFlight = false;
-      if (cloudSyncPending) syncCloudNow();
+      if (cloudSyncPending) {
+        cloudSyncPending = false;
+        scheduleCloudSave();
+      }
     }
   }
 
@@ -1231,9 +1290,15 @@
     localStorage.setItem(CLOUD_URL_KEY, BUILT_IN_CLOUD_URL);
     const configuredUrl = getCloudUrl();
     if (configuredUrl) {
-      const loaded = await downloadFromGoogleSheet(false);
-      if (!loaded) {
-        // Keep local cache available when internet/Google is temporarily unavailable.
+      try {
+        setCloudStatus('Checking cloud connection…');
+        await cloudRequest('ping');
+        const loaded = await downloadFromGoogleSheet(false);
+        if (!loaded) {
+          setCloudStatus('Offline — using local cache', false);
+        }
+      } catch (err) {
+        console.error(err);
         setCloudStatus('Offline — using local cache', false);
       }
     }
@@ -2622,6 +2687,10 @@
     }
 
     function finishBillSave(newInvoice, shouldPrint) {
+      // Master Inventory is derived from Purchase History minus saved invoices.
+      // Recalculate before saving so temporary cart stock changes cannot leave
+      // Master Inventory out of sync with the transaction history.
+      recalculateInventoryFromPurchases();
       saveLocal();
       if (shouldPrint) rebuiltPrintReceipt(newInvoice);
       alert(shouldPrint ? 'Invoice processed successfully!' : 'Bill saved successfully!');
@@ -2936,13 +3005,12 @@
     });
 
     btnCloseInvoice.addEventListener('click', ()=> {
-      if (window.editTargetInvoice) {
-          window.editTargetInvoice.items.forEach(item => {
-              const product = products.find(p => String(p.code) === String(item.code));
-              if (product) product.qty -= item.qty;
-          });
-          window.editTargetInvoice = null;
-      }
+      // Cart quantities temporarily change products[].qty while the bill is open.
+      // If the bill is cancelled/closed, restore the authoritative stock balance
+      // from Purchase History minus the invoices that actually exist.
+      window.editTargetInvoice = null;
+      recalculateInventoryFromPurchases();
+      saveLocal();
       openNewBillingPopup();
     });
     
