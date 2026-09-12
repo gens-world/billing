@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gens world || Fashion girls</title>
+    <title id="pageTitle">Gens world || Fashion girls</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -110,7 +110,7 @@
 
 <div id="login-overlay" class="login-overlay">
     <div class="login-box">
-        <h2 style="font-size: 1.2rem; margin-bottom: 15px;">Gens world || Fashion girls Login</h2>
+        <h2 style="font-size: 1.2rem; margin-bottom: 15px;"><span id="loginShopName">Gens world || Fashion girls</span> Login</h2>
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Enter Password" required>
 
@@ -133,7 +133,7 @@
 
 <div class="container">
     <header>
-        <h1>Gens world || Fashion girls</h1>
+        <h1 id="appShopName">Gens world || Fashion girls</h1>
         <div style="display:flex;align-items:center;gap:8px;"><div id="statusMessage" style="color:white;font-weight:600;"></div><button id="resetButton" type="button" style="background:#dc3545;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">Reset</button></div>
     </header>
 
@@ -142,11 +142,13 @@
         <button data-tab="invoice">New Sale</button>
         <button data-tab="expenses">Expenses</button>
         <button data-tab="offers">Offers</button>
-        <button data-tab="inventory">Inventory Setup</button>
+        <button data-tab="inventorySetup">Inventory Setup</button>
+        <button data-tab="masterInventory">Master Inventory</button>
         <button data-tab="stock">Purchase History</button>
         <button data-tab="sales">Sales History</button>
         <button data-tab="dataImport">Data Import</button>
         <button data-tab="report">Reports</button>
+        <button data-tab="settings">Settings</button>
     </nav>
 
     <section id="dashboard" class="tab-content active" aria-label="Dashboard">
@@ -338,7 +340,7 @@
         </div>
     </section>
 
-    <section id="inventory" class="tab-content" aria-label="Inventory Setup">
+    <section id="inventorySetup" class="tab-content" aria-label="Inventory Setup">
         <div class="flex-container">
             <div class="flex-item" style="flex: 2;">
                 <h2 style="font-size: 1.1rem; margin-top: 0;">Product & Inventory Entry</h2>
@@ -423,14 +425,24 @@
             </div>
         </div>
         
-        <hr style="margin: 20px 0;">
-        
-        <h2 style="font-size: 1.1rem;">Current Master Inventory</h2>
-        <input type="text" id="searchInventory" placeholder="Search by Name or Code..." style="width: 250px;">
-        <div id="inventoryProductList" class="scrollable" style="max-height: 350px; margin-top: 10px;">
+        <datalist id="categoriesDatalist"></datalist>
+    </section>
+
+    <section id="masterInventory" class="tab-content" aria-label="Master Inventory">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+                <h2 style="font-size: 1.1rem; margin: 0;">Inventory</h2>
+                <small style="color:#666;">Current Master Inventory — stock available for billing.</small>
+            </div>
+            <button id="btnMoveInventory" type="button" class="secondary-btn">↔ Move Inventory</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+            <input type="text" id="searchInventory" placeholder="Search by Name or Code..." style="width:250px;margin:0;">
+            <button id="btnPrintAllLabels" type="button" class="secondary-btn">Print Labels</button>
+        </div>
+        <div id="inventoryProductList" class="scrollable" style="max-height: 500px; margin-top: 10px;">
             <p>Loading inventory...</p>
         </div>
-        <datalist id="categoriesDatalist"></datalist>
     </section>
 
     <section id="stock" class="tab-content" aria-label="Purchase History">
@@ -499,7 +511,8 @@
               <tr>
                 <th>Date</th>
                 <th>ID</th>
-                <th>Payment Breakdown</th>
+                <th class="num-align">Cash (₹)</th>
+                <th class="num-align">Online / UPI (₹)</th>
                 <th>Items</th>
                 <th class="num-align">Total (₹)</th>
                 <th class="num-align">Profit (₹)</th>
@@ -555,6 +568,30 @@
         <div id="combinedImportStatus" style="margin-top:10px;"></div>
     </section>
 
+    <section id="settings" class="tab-content" aria-label="Settings">
+        <h2 style="font-size:1.1rem;margin-top:0;">Settings</h2>
+        <div style="max-width:650px;background:#f8f9fa;border:1px solid #ddd;border-radius:8px;padding:15px;">
+            <label for="shopNameSetting" style="font-weight:700;">Shop Name</label>
+            <input type="text" id="shopNameSetting" placeholder="Enter shop name" maxlength="100">
+            <small style="display:block;color:#666;margin:5px 0 14px;">Used on the login page, app header, printed bills and WhatsApp bills.</small>
+
+            <label for="billPrintPaper" style="font-weight:700;">Bill Print Paper</label>
+            <select id="billPrintPaper">
+                <option value="pos">POS / Thermal 80 mm</option>
+                <option value="a6">A6 (105 × 148 mm)</option>
+            </select>
+            <small style="display:block;color:#666;margin:5px 0 14px;">POS uses an 80 mm thermal-receipt layout. A6 uses the existing 105 × 148 mm layout.</small>
+
+            <button id="btnSaveSettings" type="button" class="success-btn">Save Preferences</button>
+            <span id="settingsStatus" style="margin-left:8px;color:#198754;font-weight:600;"></span>
+        </div>
+
+        <div style="margin-top:18px;max-width:650px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:15px;">
+            <h3 style="margin:0 0 8px;font-size:1rem;">Label Printer Check</h3>
+            <p style="margin:0;color:#555;font-size:.9rem;line-height:1.5;">The previous label layout was browser-sized and did not define a physical thermal page size. It has been changed to a compact 58 × 40 mm thermal-label format with CODE128 barcode, product name, code and MRP, designed for common direct-thermal label printers.</p>
+        </div>
+    </section>
+
     <section id="report" class="tab-content" aria-label="Reports">
         <h2 style="font-size: 1.1rem; margin-top: 0;">Analytics & Dynamic Data Reports</h2>
         
@@ -574,6 +611,8 @@
                 <div>
                     <label for="reportDateRangePreset">Date Filter Range</label>
                     <select id="reportDateRangePreset">
+                        <option value="custom" selected>Today</option>
+                        <option value="yesterday">Yesterday</option>
                         <option value="this_month">This Month</option>
                         <option value="last_month">Last Month</option>
                         <option value="last_7_days">Last 7 Days</option>
@@ -650,8 +689,65 @@
       .join(' ');
   }
 
+  // Persistent shop/printing preferences
+  function getShopName(){ return (localStorage.getItem('shopName') || 'Gens world || Fashion girls').trim() || 'Gens world || Fashion girls'; }
+  function getBillPrintPaper(){ return localStorage.getItem('billPrintPaper') || 'pos'; }
+  function applyShopName(){
+    const name = getShopName();
+    const title = document.getElementById('pageTitle');
+    const login = document.getElementById('loginShopName');
+    const header = document.getElementById('appShopName');
+    if(title) title.textContent = name;
+    if(login) login.textContent = name;
+    if(header) header.textContent = name;
+  }
+
+  // Admin protection for Settings changes. This is a client-side protection only.
+  const SETTINGS_ADMIN_PASSWORD = '2209@harisH';
+  let settingsAdminUnlocked = false;
+
+  function requestSettingsAdminAccess(){
+    if(settingsAdminUnlocked) return true;
+    const entered = prompt('Admin password required to open Settings:');
+    if(entered === SETTINGS_ADMIN_PASSWORD){
+      settingsAdminUnlocked = true;
+      return true;
+    }
+    alert('Incorrect admin password. Settings access denied.');
+    return false;
+  }
+
+  function initSettingsUI(){
+    const nameInput=document.getElementById('shopNameSetting');
+    const paper=document.getElementById('billPrintPaper');
+    if(nameInput) nameInput.value=getShopName();
+    if(paper) paper.value=getBillPrintPaper();
+  }
+
+  document.getElementById('btnSaveSettings')?.addEventListener('click',()=>{
+    if(!requestSettingsAdminAccess()) return;
+    const name=(document.getElementById('shopNameSetting')?.value || '').trim();
+    if(!name){ alert('Please enter a shop name.'); return; }
+    localStorage.setItem('shopName',name);
+    localStorage.setItem('billPrintPaper',document.getElementById('billPrintPaper')?.value || 'pos');
+    applyShopName();
+    const st=document.getElementById('settingsStatus'); if(st){ st.textContent='Saved ✓'; setTimeout(()=>st.textContent='',1800); }
+  });
+
+  // Protect the Settings tab itself. Other tabs continue to work normally.
+  document.querySelectorAll('[data-tab="settings"]').forEach(btn=>{
+    btn.addEventListener('click', function(e){
+      if(!requestSettingsAdminAccess()){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
+  });
+
   // Pre-defined categories fallback list
   const DEFAULT_CATEGORIES = ["Shirt", "Pant", "Tshirt", "Inners", "Dothi", "Uncategorized"];
+
+  applyShopName();
 
   function handleLogin() {
     const passwordInput = document.getElementById('password').value;
@@ -733,15 +829,21 @@
       return;
     }
 
-    if (getCloudUrl()) {
-      const cloudCleared = await clearGoogleSheet();
-      if (!cloudCleared) return;
-    }
+    clearTimeout(cloudSyncTimer);
+    cloudSyncPending = false;
+    cloudSyncInFlight = false;
+
+    let cloudResetOK = true;
+    if (getCloudUrl()) cloudResetOK = await clearGoogleSheet();
 
     localStorage.clear();
     sessionStorage.clear();
     resetOverlay.style.display = 'none';
-    alert('Automatic backup created. Local data and the Google Sheet master database have been reset successfully. The page will reload.');
+    if (cloudResetOK) {
+      alert('Automatic backup created. Local data and the Google Sheet master database have been reset successfully. The page will reload.');
+    } else {
+      alert('Automatic backup created and this device has been reset. WARNING: Google Sheet could not be cleared, so cloud data may return after reload.');
+    }
     location.reload();
   });
 
@@ -848,7 +950,15 @@
     }
     const header = document.getElementById('statusMessage');
     if (header) {
-      header.textContent = getCloudUrl() ? (ok === false ? 'Cloud ✕' : 'Cloud ✓') : '';
+      if (!getCloudUrl()) {
+        header.textContent = '';
+      } else if (ok === true) {
+        header.textContent = 'Cloud ✓';
+      } else if (ok === false) {
+        header.textContent = 'Cloud ✕';
+      } else {
+        header.textContent = 'Cloud …';
+      }
       header.style.color = '#fff';
       header.style.fontWeight = '600';
       header.title = message;
@@ -1149,7 +1259,9 @@
       case 'invoice': openNewBillingPopup(); break;
       case 'expenses': renderExpenses(); break;
       case 'offers': renderOffers(); break;
-      case 'inventory': renderInventory(); break;
+      case 'inventorySetup': renderInventory(); break;
+      case 'masterInventory': renderInventory(); break;
+      case 'settings': initSettingsUI(); break;
       case 'stock': renderStock(); break;
       case 'sales': renderSalesHistory(); break;
       case 'dataImport': break;
@@ -1742,41 +1854,38 @@
     generateBarcode(uniqueCodeInput.value.trim());
   });
 
-  btnPrintBarcode.addEventListener('click', () => {
-    const code = uniqueCodeInput.value.trim();
-    const name = productNameInput.value.trim();
-    const sp = sellingPriceInput.value.trim();
-    if(!code || !name || !sp) {
-      alert("Please enter Code, Product Name, and Selling Price first.");
-      return;
-    }
-    
-    const printWin = window.open('', '_blank', 'width=350,height=350');
+  function printProductLabel(product){
+    const code = String(product?.code || '').trim();
+    const name = String(product?.name || '').trim();
+    const mrp = Number(product?.mrp ?? product?.sp ?? 0);
+    if(!code || !name){ alert('Product code and name are required to print a label.'); return; }
+    const printWin = window.open('', '_blank', 'width=320,height=260');
+    if(!printWin){ alert('Please allow pop-ups to print labels.'); return; }
+    const safe = v => String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     printWin.document.write(`
-      <html>
-        <head>
-          <title>Print Barcode</title>
-          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
-          <style>
-            body { font-family: sans-serif; text-align: center; margin: 10px; }
-            .label { border: 1px dashed #ccc; padding: 8px; display: inline-block; }
-          </style>
-        </head>
-        <body>
-          <div class="label">
-            <div style="font-weight:bold; font-size:11px;">${name.substring(0,22)}</div>
-            <svg id="bcSvg"></svg>
-            <div style="font-size:10px;">Code: ${code}</div>
-            <div style="font-weight:bold; font-size:12px; margin-top:2px;">MRP: ${formatINR(parseFloat(sp))}</div>
-          </div>
-          <script>
-            JsBarcode('#bcSvg', '${code}', { format: 'CODE128', width: 1.2, height: 35, displayValue: false });
-            setTimeout(() => { window.print(); window.close(); }, 500);
-          <\/script>
-        </body>
-      </html>
-    `);
+      <html><head><title>Label ${safe(code)}</title>
+      <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+      <style>
+        @page{size:58mm 40mm;margin:0}
+        *{box-sizing:border-box}
+        html,body{width:58mm;height:40mm;margin:0;padding:0;background:#fff}
+        body{font-family:Arial,Helvetica,sans-serif;color:#000}
+        .label{width:58mm;height:40mm;padding:2.2mm 2.5mm;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+        .name{width:100%;font-size:10px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1mm}
+        #bc{width:48mm;height:16mm}
+        .code{font-size:8px;font-weight:600;margin-top:0.8mm;letter-spacing:.2px}
+        .mrp{font-size:10px;font-weight:700;margin-top:.8mm}
+      </style></head><body>
+      <div class="label"><div class="name">${safe(name)}</div><svg id="bc"></svg><div class="code">${safe(code)}</div><div class="mrp">MRP: ${formatINR(mrp)}</div></div>
+      <script>
+        JsBarcode('#bc', ${JSON.stringify(code)}, {format:'CODE128', width:1.35, height:55, displayValue:false, margin:0});
+        setTimeout(()=>{window.print();window.close();},700);
+      <\/script></body></html>`);
     printWin.document.close();
+  }
+
+  btnPrintBarcode.addEventListener('click', () => {
+    printProductLabel({code:uniqueCodeInput.value.trim(),name:productNameInput.value.trim(),mrp:sellingPriceInput.value.trim()});
   });
 
   function generateUniqueCode(costPrice, productName){
@@ -2031,6 +2140,37 @@
     renderInventory(searchInventory.value.trim());
   });
 
+  // Inventory tab actions: print a single label or move an item into Inventory Setup for editing.
+  inventoryProductList.addEventListener('click', (e) => {
+    const btn=e.target.closest('button[data-inv-action]'); if(!btn) return;
+    const code=btn.getAttribute('data-code');
+    const product=products.find(p=>String(p.code)===String(code));
+    if(!product) return;
+    if(btn.dataset.invAction==='print') printProductLabel(product);
+    if(btn.dataset.invAction==='move'){
+      const setupBtn=document.querySelector('nav.tabs button[data-tab="inventorySetup"]');
+      setupBtn?.click();
+      uniqueCodeInput.value=product.code || ''; productNameInput.value=product.name || '';
+      purchaseDateInput.value=product.purchaseDate || new Date().toISOString().slice(0,10);
+      purchaseQtyInput.value=product.qty || 0; purchaseCostInput.value=product.cp || 0;
+      mrpInput.value=product.mrp || product.sp || 0; sellingPriceInput.value=product.sp || 0;
+      productCategoryInput.value=product.category || ''; itemTypeSelect.value=product.itemType || 'Common';
+      editingExistingCodeInput.value=product.code || ''; btnSaveProduct.disabled=false;
+      generateBarcode(product.code || '');
+      validateSellingPrice();
+    }
+  });
+
+  document.getElementById('btnMoveInventory')?.addEventListener('click',()=>{
+    document.querySelector('nav.tabs button[data-tab="inventorySetup"]')?.click();
+  });
+  document.getElementById('btnPrintAllLabels')?.addEventListener('click',()=>{
+    const list=products.filter(p=>Number(p.qty||0)>0);
+    if(!list.length){alert('No inventory items available to print labels.');return;}
+    if(!confirm(`Print labels for ${list.length} inventory item(s)?`)) return;
+    let i=0; const next=()=>{ if(i>=list.length)return; printProductLabel(list[i++]); setTimeout(next,900); }; next();
+  });
+
   function renderInventory(searchText = '') {
     populateCategoryLists();
     populateProductNameDatalist();
@@ -2043,7 +2183,7 @@
       ).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true, sensitivity: 'base' }));
       if(catProducts.length === 0) return;
       html += `<section><h3 style="font-size:0.9rem; margin: 10px 0 5px 0;">${cat} (${catProducts.length})</h3><table><thead><tr>
-        <th>Code</th><th>Name</th><th>Type</th><th class="num-align">Stock Qty</th><th class="num-align">Cost Price</th><th class="num-align">MRP</th><th class="num-align">Selling Price</th>
+        <th>Code</th><th>Name</th><th>Type</th><th class="num-align">Stock Qty</th><th class="num-align">Cost Price</th><th class="num-align">MRP</th><th class="num-align">Selling Price</th><th>Action</th>
       </tr></thead><tbody>`;
       catProducts.forEach(p=>{
         html += `<tr>
@@ -2054,6 +2194,10 @@
         <td class="num-align">${formatINR(p.cp)}</td>
         <td class="num-align">${formatINR(p.mrp)}</td>
         <td class="num-align">${formatINR(p.sp)}</td>
+        <td style="white-space:nowrap;">
+          <button type="button" class="secondary-btn" data-inv-action="print" data-code="${String(p.code).replace(/"/g,'&quot;')}">Print Label</button>
+          <button type="button" class="secondary-btn" data-inv-action="move" data-code="${String(p.code).replace(/"/g,'&quot;')}">Move</button>
+        </td>
         </tr>`;
       });
       html += '</tbody></table></section>';
@@ -2182,7 +2326,7 @@
     btnSaveProduct.disabled = false;
     btnSaveProduct.textContent = 'Update Purchase / Stock';
 
-    document.querySelector('nav.tabs button[data-tab="inventory"]').click();
+    document.querySelector('nav.tabs button[data-tab="masterInventory"]').click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -2459,6 +2603,17 @@
         status: 'paid', paymentMethod: pMode, cashAmount: cashAmt, onlineAmount: onlineAmt,
         total: netTotal, items: itemsWithDiscount
       };
+
+      // During edit, the old invoice quantities were temporarily returned to stock
+      // when the edit form opened. Deduct the newly edited quantities now so stock
+      // represents the edited invoice exactly (not the old + new quantities).
+      if (oldInvoice) {
+        itemsWithDiscount.forEach(item => {
+          const product = products.find(p => String(p.code) === String(item.code));
+          if (product) product.qty = Number(product.qty || 0) - Number(item.qty || 0);
+        });
+      }
+
       invoices.push(newInvoice);
       let todaySale = sales.find(s => s.date === newInvoice.date);
       if (!todaySale) { todaySale = {date:newInvoice.date, amount:0}; sales.push(todaySale); }
@@ -2476,10 +2631,29 @@
     }
 
     // Save & Print Receipt: saves the bill, customer and inventory, then prints.
+    // Lock the action immediately so a rapid/double click cannot create a second bill.
     btnSaveInvoice.addEventListener('click', () => {
-      const invoice = buildCurrentInvoice();
-      if (!invoice) return;
-      finishBillSave(invoice, true);
+      if (window.billSaveInProgress) return;
+      window.billSaveInProgress = true;
+      btnSaveInvoice.disabled = true;
+      try {
+        const wasEditing = !!window.editTargetInvoice;
+        const invoice = buildCurrentInvoice();
+        if (!invoice) {
+          window.billSaveInProgress = false;
+          btnSaveInvoice.disabled = false;
+          return;
+        }
+        finishBillSave(invoice, !wasEditing);
+        // Keep the lock briefly after the form is re-rendered. This blocks the
+        // second event of a rapid double-click from saving the fresh form again.
+        setTimeout(() => { window.billSaveInProgress = false; }, 1500);
+      } catch (err) {
+        window.billSaveInProgress = false;
+        btnSaveInvoice.disabled = false;
+        console.error('Save & Print Receipt failed:', err);
+        alert('Could not save the bill. Please try again.');
+      }
     });
 
     // Save Bill: saves everything without WhatsApp and without printing.
@@ -2503,13 +2677,16 @@
       const subTotal = Math.round(visibleItems.reduce((sum,it)=>sum+Number(it.sp||0)*Number(it.qty||0),0));
       const netTotal = Math.round(calculateInvoiceTotal(invoice));
       const discount = Math.round(subTotal - netTotal);
-      const lines = ['Gens world || Fashion girls','Bill / Sales Receipt',invoice.customerName ? 'Customer: '+invoice.customerName : '','Date: '+invoice.date,'------------------------------'].filter(Boolean);
+      const invoiceNumber = String(invoice.id || '').trim();
+      const lines = [getShopName(),'Bill / Sales Receipt',invoiceNumber ? 'Invoice No: '+invoiceNumber : '',invoice.customerName ? 'Customer: '+invoice.customerName : '','Date: '+invoice.date,'------------------------------'].filter(Boolean);
       visibleItems.forEach((it,index) => {
         const amount = Math.round(Number(it.sp||0)*Number(it.qty||0));
         lines.push(`${index+1}. ${it.name}`);
         lines.push(`   Qty: ${it.qty} x ₹${Math.round(Number(it.sp||0))} = ₹${amount}`);
       });
-      lines.push('------------------------------','Sub Total: ₹'+subTotal,'Discount: ₹'+discount,'NET Total: ₹'+netTotal);
+      lines.push('------------------------------','Sub Total: ₹'+subTotal);
+      if (discount > 0) lines.push('Discount: ₹'+discount);
+      lines.push('NET Total: ₹'+netTotal);
       if (invoice.cashAmount || invoice.onlineAmount) {
         const payment=[]; if(invoice.cashAmount) payment.push('Cash ₹'+invoice.cashAmount); if(invoice.onlineAmount) payment.push('Online/UPI ₹'+invoice.onlineAmount);
         lines.push('Payment: '+payment.join(' + '));
@@ -2726,8 +2903,8 @@
       btnSaveInvoice.disabled = netTotal <= 0;
 
       if (!isUserTypingPayment) {
-        billingCashInput.value = netTotal.toFixed(2);
-        billingOnlineInput.value = "0.00";
+        billingCashInput.value = String(Math.round(netTotal));
+        billingOnlineInput.value = "0";
       }
     }
 
@@ -2737,7 +2914,7 @@
       let cashVal = parseFloat(billingCashInput.value) || 0;
       if (cashVal > netTotal) cashVal = netTotal;
       const autoOnline = Math.max(0, netTotal - cashVal);
-      billingOnlineInput.value = autoOnline.toFixed(2);
+      billingOnlineInput.value = String(Math.round(autoOnline));
     });
 
     billingOnlineInput.addEventListener('input', () => {
@@ -2746,7 +2923,7 @@
       let onlineVal = parseFloat(billingOnlineInput.value) || 0;
       if (onlineVal > netTotal) onlineVal = netTotal;
       const autoCash = Math.max(0, netTotal - onlineVal);
-      billingCashInput.value = autoCash.toFixed(2);
+      billingCashInput.value = String(Math.round(autoCash));
     });
     
     discountFlatInput.addEventListener('input', () => {
@@ -2756,114 +2933,6 @@
     discountPercentInput.addEventListener('input', () => {
         discountFlatInput.value = 0;
         updateInvoiceTotal();
-    });
-
-    btnSaveInvoice.addEventListener('click', ()=>{
-      const selectedSaleDate = billingDateInput.value;
-      if (!selectedSaleDate) {
-        alert("Please select the sale date.");
-        billingDateInput.focus();
-        return;
-      }
-
-      const items = invoiceItems.filter(it => it.qty > 0);
-      if(items.length === 0){
-        alert("Please add at least one item.");
-        return;
-      }
-      
-      const subTotal = items.reduce((a,i)=>a+i.sp*i.qty,0);
-      const offerDiscount = calculateOfferDiscount();
-      const subTotalAfterOffer = Math.max(0, subTotal - offerDiscount);
-      const manualDiscount = calculateManualDiscount(subTotalAfterOffer);
-      const overallDiscount = offerDiscount + manualDiscount;
-      
-      const itemsWithDiscount = items.map((it, index) => ({
-          code: it.code, 
-          name: it.name, 
-          sp: it.sp, 
-          cp: it.cp || 0,
-          qty: it.qty, 
-          discount: Math.round(Number(index) || 0) === 0 ? overallDiscount : 0
-      }));
-
-      const netTotal = subTotal - overallDiscount;
-      let cashAmt = parseFloat(billingCashInput.value) || 0;
-      let onlineAmt = parseFloat(billingOnlineInput.value) || 0;
-
-      if (cashAmt === 0 && onlineAmt === 0) {
-        cashAmt = netTotal;
-      }
-
-      let pMode = 'Cash';
-      if (cashAmt > 0 && onlineAmt > 0) pMode = 'Split (Cash+Online)';
-      else if (onlineAmt > 0) pMode = 'Online / UPI';
-
-      let newInvoice;
-      const selectedSaleDateFinal = selectedSaleDate || today;
-
-      if(window.editTargetInvoice) {
-          const oldInvoice = window.editTargetInvoice;
-
-          // IMPORTANT: keep the original invoice number/ID unchanged during editing.
-          const preservedInvoiceId = oldInvoice.id;
-          const oldNetTotal = calculateInvoiceTotal(oldInvoice);
-
-          invoices = invoices.filter(inv => String(inv.id) !== String(preservedInvoiceId));
-
-          // Remove the old amount from the old date.
-          const oldSaleEntry = sales.find(s => s.date === oldInvoice.date);
-          if (oldSaleEntry) {
-              oldSaleEntry.amount -= oldNetTotal;
-              if (oldSaleEntry.amount <= 0) {
-                  sales = sales.filter(s => s.date !== oldInvoice.date);
-              }
-          }
-
-          newInvoice = {
-            id: preservedInvoiceId,
-            date: selectedSaleDateFinal,
-            customerName: billingCustomerNameInput.value.trim(),
-            customerPhone: billingCustomerPhoneInput.value.trim(),
-            status: "paid",
-            paymentMethod: pMode,
-            cashAmount: cashAmt,
-            onlineAmount: onlineAmt,
-            total: netTotal,
-            items: itemsWithDiscount
-          };
-      } else {
-          newInvoice = {
-            id: Date.now(),
-            date: selectedSaleDateFinal,
-            customerName: billingCustomerNameInput.value.trim(),
-            customerPhone: billingCustomerPhoneInput.value.trim(),
-            status: "paid",
-            paymentMethod: pMode,
-            cashAmount: cashAmt,
-            onlineAmount: onlineAmt,
-            total: netTotal,
-            items: itemsWithDiscount
-          };
-      }      
-      invoices.push(newInvoice);
-      
-      let todaySale = sales.find(s => s.date === newInvoice.date);
-      if(!todaySale) {
-        todaySale = {date: newInvoice.date, amount:0};
-        sales.push(todaySale);
-      }
-      todaySale.amount += netTotal;
-
-      saveLocal(); 
-      rebuiltPrintReceipt(newInvoice);
-
-      alert("Invoice processed successfully!");
-      renderDashboard();
-      renderInventory();
-      renderStock();
-      openNewBillingPopup();
-      window.editTargetInvoice = null;
     });
 
     btnCloseInvoice.addEventListener('click', ()=> {
@@ -2894,6 +2963,12 @@
       ? invoice.onlineAmount
       : (invoice.paymentMethod === 'Online / UPI' ? netTotal : 0));
 
+    const printPaper = getBillPrintPaper();
+    const isA6 = printPaper === 'a6';
+    const pageSize = isA6 ? '105mm 148mm' : '80mm auto';
+    const receiptWidth = isA6 ? '105mm' : '80mm';
+    const receiptPadding = isA6 ? '5mm' : '3mm';
+    const receiptFontSize = isA6 ? '10px' : '9px';
     const printWin = window.open('', '_blank', 'width=450,height=650');
     if (!printWin) {
       alert('Please allow pop-ups for this POS page to print the receipt.');
@@ -2926,15 +3001,15 @@
           <title>Receipt #${invoice.id}</title>
           <style>
             @page {
-              size: 105mm 148mm;
+              size: ${pageSize};
               margin: 0;
             }
 
             * { box-sizing: border-box; }
 
             html, body {
-              width: 105mm;
-              min-height: 148mm;
+              width: ${receiptWidth};
+              min-height: ${isA6 ? '148mm' : 'auto'};
               margin: 0;
               padding: 0;
               background: #fff;
@@ -2942,9 +3017,9 @@
 
             body {
               font-family: Arial, Helvetica, sans-serif;
-              font-size: 10px;
+              font-size: ${receiptFontSize};
               color: #000;
-              padding: 5mm;
+              padding: ${receiptPadding};
             }
 
             .center { text-align: center; }
@@ -2967,7 +3042,7 @@
             .items-table th,
             .items-table td {
               padding: 3px 1px;
-              font-size: 10px;
+              font-size: ${receiptFontSize};
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -2996,7 +3071,7 @@
 
             .summary td {
               padding: 2px 0;
-              font-size: 10px;
+              font-size: ${receiptFontSize};
             }
 
             .summary .net {
@@ -3008,7 +3083,7 @@
 
         <body>
           <div class="center">
-            <h2 style="margin:0; font-size:16px; letter-spacing:0.3px;">Gens world || Fashion girls</h2>
+            <h2 style="margin:0; font-size:16px; letter-spacing:0.3px;">${getShopName()}</h2>
             <p style="margin:3px 0; font-size:10px;">Retail Store Receipt</p>
             <p style="margin:2px 0; font-size:9px;">Date: ${invoice.date} | Invoice ID: #${invoice.id}</p>
             <p style="margin:2px 0; font-size:9px;">Payment Mode: ${invoice.paymentMethod || 'Cash'}</p>
@@ -3134,13 +3209,13 @@
       
       const cPay = inv.cashAmount !== undefined ? inv.cashAmount : (inv.paymentMethod === 'Online / UPI' ? 0 : total);
       const oPay = inv.onlineAmount !== undefined ? inv.onlineAmount : (inv.paymentMethod === 'Online / UPI' ? total : 0);
-      const pBreakdown = `Cash: ₹${Math.round(cPay)} | UPI: ₹${Math.round(oPay)}`;
 
       const weekendClass = getWeekendRowClass(inv.date);
       return `<tr class="${weekendClass}">
         <td>${inv.date}</td>
         <td>${inv.id}</td>
-        <td><span style="background:#e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${pBreakdown}</span></td>
+        <td class="num-align">₹${Math.round(cPay)}</td>
+        <td class="num-align">₹${Math.round(oPay)}</td>
         <td>${itemsSummary.substring(0, 45) + (itemsSummary.length > 45 ? '...' : '')}</td>
         <td class="num-align">${formatINR(total)}</td>
         <td class="num-align" style="font-weight: bold; color: ${profit >= 0 ? 'green' : 'red'};">${formatINR(profit)}</td>
@@ -3152,7 +3227,7 @@
       </tr>`;
     }).join('');
     
-    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No sales records found.</td></tr>';
+    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No sales records found.</td></tr>';
   }
 
   /* COMBINED SALES + PURCHASE + EXPENSE IMPORT */
@@ -3660,6 +3735,11 @@
     btnExportReportExcel.onclick = exportReportToExcel;
     btnExportReportPDF.onclick = exportReportToPDF;
 
+    // Reports open on today's date by default.
+    const todayStr = new Date().toISOString().slice(0, 10);
+    reportStartDate.value = todayStr;
+    reportEndDate.value = todayStr;
+    customDateRangeBox.style.display = 'block';
     generateReport();
   }
 
@@ -3669,7 +3749,11 @@
     let startDate = new Date();
     let endDate = new Date();
 
-    if (preset === 'this_month') {
+    if (preset === 'yesterday') {
+      startDate = new Date(today);
+      startDate.setDate(today.getDate() - 1);
+      endDate = new Date(startDate);
+    } else if (preset === 'this_month') {
       startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     } else if (preset === 'last_month') {
