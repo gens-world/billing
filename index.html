@@ -883,36 +883,50 @@
   });
 
   function recalculateInventoryFromPurchases() {
-    // Recalculate current master inventory stock from all remaining purchase batches and sales
-    const inventoryMap = {};
+    // Master Inventory is batch-based: one row per unique product code.
+    // Product name must NEVER be used as the grouping key.
+    const inventoryMap = Object.create(null);
 
     purchaseHistory.forEach(ph => {
-      const codeStr = String(ph.code);
+      const codeStr = String(ph.code ?? '').trim();
+      if (!codeStr) return;
+
       if (!inventoryMap[codeStr]) {
         inventoryMap[codeStr] = {
           code: ph.code,
-          name: ph.name,
-          category: ph.category,
+          name: ph.name || '',
+          category: ph.category || 'Uncategorized',
           itemType: ph.itemType || 'Common',
-          purchaseDate: ph.purchaseDate,
+          purchaseDate: ph.purchaseDate || '',
           qty: 0,
-          cp: ph.cp,
-          mrp: ph.mrp || ph.sp,
-          sp: ph.sp,
+          cp: Number(ph.cp) || 0,
+          mrp: Number(ph.mrp ?? ph.sp) || 0,
+          sp: Number(ph.sp) || 0,
           refBillNo: ph.refBillNo || '',
           sellerName: ph.sellerName || ''
         };
       }
-      inventoryMap[codeStr].qty += parseInt(ph.qty) || 0;
-      inventoryMap[codeStr].cp = ph.cp;
-      inventoryMap[codeStr].sp = ph.sp;
+
+      inventoryMap[codeStr].qty += Number(ph.qty) || 0;
+
+      // Only combine purchase rows having this exact same code.
+      inventoryMap[codeStr].name = ph.name || inventoryMap[codeStr].name;
+      inventoryMap[codeStr].category = ph.category || inventoryMap[codeStr].category;
+      inventoryMap[codeStr].itemType = ph.itemType || inventoryMap[codeStr].itemType;
+      inventoryMap[codeStr].purchaseDate = ph.purchaseDate || inventoryMap[codeStr].purchaseDate;
+      inventoryMap[codeStr].cp = Number(ph.cp) || 0;
+      inventoryMap[codeStr].mrp = Number(ph.mrp ?? ph.sp) || 0;
+      inventoryMap[codeStr].sp = Number(ph.sp) || 0;
+      inventoryMap[codeStr].refBillNo = ph.refBillNo || '';
+      inventoryMap[codeStr].sellerName = ph.sellerName || '';
     });
 
+    // Sales deduct stock from the exact code that was sold.
     invoices.forEach(inv => {
-      inv.items.forEach(it => {
-        const codeStr = String(it.code);
+      (inv.items || []).forEach(it => {
+        const codeStr = String(it.code ?? '').trim();
         if (inventoryMap[codeStr]) {
-          inventoryMap[codeStr].qty -= parseInt(it.qty) || 0;
+          inventoryMap[codeStr].qty -= Number(it.qty) || 0;
         }
       });
     });
@@ -999,6 +1013,7 @@
       if (ph.id === undefined || ph.id === null || ph.id === '') ph.id = Date.now() + idx;
       ph.purchaseId = String(ph.purchaseId);
     });
+    recalculateInventoryFromPurchases();
   }
 
   function loadFromLocal(){
@@ -1021,6 +1036,7 @@
       if (ph.id === undefined || ph.id === null || ph.id === '') ph.id = Date.now() + idx;
       ph.purchaseId = String(ph.purchaseId);
     });
+    recalculateInventoryFromPurchases();
   }
 
   function saveLocal(){
@@ -2822,8 +2838,17 @@
 
     function addItemToInvoiceByCode(code) {
         const searchValue = String(code || '').trim();
-        const product = products.find(p => String(p.code) === searchValue) ||
-            products.find(p => String(p.name || '').trim().toLowerCase() === searchValue.toLowerCase());
+        const exactCodeProduct = products.find(p => String(p.code ?? '').trim() === searchValue);
+        const normalizedName = searchValue.toLowerCase();
+        const nameMatches = products
+            .filter(p => String(p.name || '').trim().toLowerCase() === normalizedName)
+            .sort((a, b) => (Number(b.qty) || 0) - (Number(a.qty) || 0));
+
+        // Exact barcode/code always selects that exact batch.
+        // Name entry selects an available batch instead of blindly taking the first row.
+        const product = exactCodeProduct ||
+            nameMatches.find(p => (Number(p.qty) || 0) > 0) ||
+            nameMatches[0];
         
         if (!product) {
             alert(`Product "${searchValue}" not found.`);
