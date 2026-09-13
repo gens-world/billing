@@ -500,8 +500,8 @@
             <input type="date" id="salesDateSearch" />
           </div>
           <div style="flex: 1;">
-            <label for="salesInvoiceSearch">Search Invoice ID/Item</label>
-            <input type="text" id="salesInvoiceSearch" placeholder="Search by ID or Item Name" />
+            <label for="salesInvoiceSearch">Search Invoice ID/Item/Customer</label>
+            <input type="text" id="salesInvoiceSearch" placeholder="Search by ID, Item, Customer Name or Number" />
           </div>
         </div>
         
@@ -511,6 +511,8 @@
               <tr>
                 <th>Date</th>
                 <th>ID</th>
+                <th>Customer Name</th>
+                <th>Customer Number</th>
                 <th class="num-align">Cash (₹)</th>
                 <th class="num-align">Online / UPI (₹)</th>
                 <th>Items</th>
@@ -1887,6 +1889,25 @@
     }).join('');
   }
   
+  // When an existing product name is selected/typed, pre-fill its current
+  // Cost Price, MRP and Selling Price. These fields remain editable.
+  function prefillPricesForExistingProduct(){
+    const typedName = String(productNameInput.value || '').trim().toLowerCase();
+    if (!typedName || editingPurchaseHistoryId !== null || editingExistingCodeInput.value) return;
+
+    const matches = products.filter(p => String(p.name || '').trim().toLowerCase() === typedName);
+    if (!matches.length) return;
+
+    // If the same name has multiple product codes, prefer the most recently
+    // purchased/updated record while keeping the code rules unchanged.
+    matches.sort((a,b) => String(b.purchaseDate || '').localeCompare(String(a.purchaseDate || '')));
+    const product = matches[0];
+    costPriceInput.value = Number(product.cp || 0);
+    mrpInput.value = Number(product.mrp ?? product.sp ?? 0);
+    sellingPriceInput.value = Number(product.sp || 0);
+    validateSellingPrice();
+  }
+
   function validateSellingPrice(){
     const cp = parseFloat(costPriceInput.value);
     const mrp = parseFloat(mrpInput.value);
@@ -1916,7 +1937,10 @@
   costPriceInput.addEventListener('input', validateSellingPrice);
   mrpInput.addEventListener('input', validateSellingPrice);
   sellingPriceInput.addEventListener('input', validateSellingPrice);
-  productNameInput.addEventListener('input', validateSellingPrice);
+  productNameInput.addEventListener('input', () => {
+    prefillPricesForExistingProduct();
+    validateSellingPrice();
+  });
   uniqueCodeInput.addEventListener('input', validateSellingPrice);
   itemTypeSelect.addEventListener('change', validateSellingPrice);
 
@@ -2458,7 +2482,21 @@
     let onlinePay = 0;
     window.editTargetInvoice = invoiceToEdit;
 
+    // Older invoices may have payment/customer fields missing. Use the saved
+    // customer directory when a phone number is present, without changing new data.
     if (invoiceToEdit) {
+        if ((!invoiceToEdit.customerName || !invoiceToEdit.customerPhone) && Array.isArray(customers)) {
+          const matchedCustomer = invoiceToEdit.customerPhone ? findCustomerByPhone(invoiceToEdit.customerPhone) :
+            (invoiceToEdit.customerName ? customers.find(c => String(c.name || '').trim().toLowerCase() === String(invoiceToEdit.customerName).trim().toLowerCase()) : null);
+          if (matchedCustomer) {
+            if (!invoiceToEdit.customerName) invoiceToEdit.customerName = matchedCustomer.name || '';
+            if (!invoiceToEdit.customerPhone) {
+              const digits = String(matchedCustomer.phone || '').replace(/\D/g, '');
+              invoiceToEdit.customerPhone = digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits;
+            }
+          }
+        }
+
         invoiceToEdit.items.forEach(item => {
             const product = products.find(p => String(p.code) === String(item.code));
             if (product) product.qty += item.qty;
@@ -2468,8 +2506,9 @@
         const subTotal = invoiceItems.reduce((a,i)=>a+i.sp*i.qty,0);
         const netTotal = calculateInvoiceTotal(invoiceToEdit);
         discountAmount = subTotal - netTotal;
-        cashPay = invoiceToEdit.cashAmount !== undefined ? invoiceToEdit.cashAmount : (invoiceToEdit.paymentMethod === 'Online' ? 0 : netTotal);
-        onlinePay = invoiceToEdit.onlineAmount !== undefined ? invoiceToEdit.onlineAmount : (invoiceToEdit.paymentMethod === 'Online' ? netTotal : 0);
+        const legacyOnline = invoiceToEdit.paymentMethod === 'Online' || invoiceToEdit.paymentMethod === 'Online / UPI';
+        cashPay = invoiceToEdit.cashAmount !== undefined ? Number(invoiceToEdit.cashAmount) : (legacyOnline ? 0 : netTotal);
+        onlinePay = invoiceToEdit.onlineAmount !== undefined ? Number(invoiceToEdit.onlineAmount) : (legacyOnline ? netTotal : 0);
     }    const billingDateValue = invoiceToEdit?.date || today;
 
     let html = `<h3 style="margin-top:0; font-size: 0.95rem;">${invoiceToEdit ? 'Edit Invoice ID: ' + invoiceToEdit.id : 'Create New Invoice'}</h3>
@@ -2789,7 +2828,9 @@
       openNewBillingPopup();
     });
 
-    let isUserTypingPayment = false;
+    // Do not overwrite saved cash/online values when an existing sale is edited.
+    // New bills still default to the full total in Cash until the user changes payment.
+    let isUserTypingPayment = !!invoiceToEdit;
 
     function populateProductDatalist() {
         const inStockProducts = products
@@ -3289,10 +3330,14 @@
     if (dateFilter) filteredInvoices = filteredInvoices.filter(inv => inv.date === dateFilter);
 
     if (searchFilter) {
-      filteredInvoices = filteredInvoices.filter(inv => 
-        String(inv.id).includes(searchFilter) ||
-        inv.items.some(item => item.name.toLowerCase().includes(searchFilter))
-      );
+      filteredInvoices = filteredInvoices.filter(inv => {
+        const customerName = String(inv.customerName || '').toLowerCase();
+        const customerPhone = String(inv.customerPhone || '').toLowerCase();
+        return String(inv.id).toLowerCase().includes(searchFilter) ||
+          customerName.includes(searchFilter) ||
+          customerPhone.includes(searchFilter) ||
+          inv.items.some(item => String(item.name || '').toLowerCase().includes(searchFilter));
+      });
     }
 
     let html = filteredInvoices.map(inv => {
@@ -3300,13 +3345,18 @@
       const profit = calculateInvoiceProfit(inv);
       const itemsSummary = inv.items.map(item => `${item.name} x${item.qty}`).join(', ');
       
-      const cPay = inv.cashAmount !== undefined ? inv.cashAmount : (inv.paymentMethod === 'Online / UPI' ? 0 : total);
-      const oPay = inv.onlineAmount !== undefined ? inv.onlineAmount : (inv.paymentMethod === 'Online / UPI' ? total : 0);
+      const legacyOnline = inv.paymentMethod === 'Online' || inv.paymentMethod === 'Online / UPI';
+      const cPay = inv.cashAmount !== undefined ? Number(inv.cashAmount) : (legacyOnline ? 0 : total);
+      const oPay = inv.onlineAmount !== undefined ? Number(inv.onlineAmount) : (legacyOnline ? total : 0);
+      const customerName = String(inv.customerName || '');
+      const customerPhone = String(inv.customerPhone || '');
 
       const weekendClass = getWeekendRowClass(inv.date);
       return `<tr class="${weekendClass}">
         <td>${inv.date}</td>
         <td>${inv.id}</td>
+        <td>${customerName || '-'}</td>
+        <td>${customerPhone || '-'}</td>
         <td class="num-align">₹${Math.round(cPay)}</td>
         <td class="num-align">₹${Math.round(oPay)}</td>
         <td>${itemsSummary.substring(0, 45) + (itemsSummary.length > 45 ? '...' : '')}</td>
@@ -3320,7 +3370,7 @@
       </tr>`;
     }).join('');
     
-    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No sales records found.</td></tr>';
+    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="10" style="text-align:center;">No sales records found.</td></tr>';
   }
 
   /* COMBINED SALES + PURCHASE + EXPENSE IMPORT */
