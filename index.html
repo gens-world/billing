@@ -577,6 +577,14 @@
             <input type="text" id="shopNameSetting" placeholder="Enter shop name" maxlength="100">
             <small style="display:block;color:#666;margin:5px 0 14px;">Used on the login page, app header, printed bills and WhatsApp bills.</small>
 
+            <label for="printThankYouNoteSetting" style="font-weight:700;">Print Bill Thank You Note</label>
+            <textarea id="printThankYouNoteSetting" rows="3" placeholder="Enter thank-you note for printed bills"></textarea>
+            <small style="display:block;color:#666;margin:5px 0 14px;">This message appears at the bottom of printed bills.</small>
+
+            <label for="whatsAppThankYouNoteSetting" style="font-weight:700;">WhatsApp Bill Thank You Note</label>
+            <textarea id="whatsAppThankYouNoteSetting" rows="3" placeholder="Enter thank-you note for WhatsApp bills"></textarea>
+            <small style="display:block;color:#666;margin:5px 0 14px;">This message appears at the bottom of the WhatsApp bill message.</small>
+
             <label for="billPrintPaper" style="font-weight:700;">Bill Print Paper</label>
             <select id="billPrintPaper">
                 <option value="pos">POS / Thermal 80 mm</option>
@@ -607,7 +615,7 @@
                         <option value="purchase_reg">Purchase REPORT (Stock & Procurement Register)</option>
                         <option value="sales_perf">SALES PERFORMANCE (Daily Product Price & Qty)</option>
                         <option value="overall_custom">OVERALL REPORT (Full Combined Register)</option>
-                        <option value="stock">Current Stock Valuation (Category-Wise)</option>
+                        <option value="stock">Current Stock Valuation (Item-Wise)</option>
                     </select>
                 </div>
                 <div>
@@ -694,6 +702,8 @@
   // Persistent shop/printing preferences
   function getShopName(){ return (localStorage.getItem('shopName') || 'Gens world || Fashion girls').trim() || 'Gens world || Fashion girls'; }
   function getBillPrintPaper(){ return localStorage.getItem('billPrintPaper') || 'pos'; }
+  function getPrintThankYouNote(){ return localStorage.getItem('printThankYouNote') ?? localStorage.getItem('thankYouNote') ?? 'Thank you for shopping with us!'; }
+  function getWhatsAppThankYouNote(){ return localStorage.getItem('whatsAppThankYouNote') ?? localStorage.getItem('thankYouNote') ?? 'Thank you for shopping with us!'; }
   function applyShopName(){
     const name = getShopName();
     const title = document.getElementById('pageTitle');
@@ -724,6 +734,10 @@
     const paper=document.getElementById('billPrintPaper');
     if(nameInput) nameInput.value=getShopName();
     if(paper) paper.value=getBillPrintPaper();
+    const printNote=document.getElementById('printThankYouNoteSetting');
+    const whatsappNote=document.getElementById('whatsAppThankYouNoteSetting');
+    if(printNote) printNote.value=getPrintThankYouNote();
+    if(whatsappNote) whatsappNote.value=getWhatsAppThankYouNote();
   }
 
   document.getElementById('btnSaveSettings')?.addEventListener('click',()=>{
@@ -732,6 +746,8 @@
     if(!name){ alert('Please enter a shop name.'); return; }
     localStorage.setItem('shopName',name);
     localStorage.setItem('billPrintPaper',document.getElementById('billPrintPaper')?.value || 'pos');
+    localStorage.setItem('printThankYouNote',(document.getElementById('printThankYouNoteSetting')?.value || '').trim());
+    localStorage.setItem('whatsAppThankYouNote',(document.getElementById('whatsAppThankYouNoteSetting')?.value || '').trim());
     applyShopName();
     const st=document.getElementById('settingsStatus'); if(st){ st.textContent='Saved ✓'; setTimeout(()=>st.textContent='',1800); }
   });
@@ -2530,7 +2546,7 @@
         </div>
         <div style="flex:2; min-width:220px;">
             <label for="billingSearchInput">Search Product (Code / Name / Category)</label>
-            <input type="text" id="billingSearchInput" list="productDatalist" placeholder="Select / type product name or code..." autocomplete="off" />
+            <input type="text" id="billingSearchInput" list="productDatalist" placeholder="Select / type product name or code..." autocomplete="off" style="width:100%;box-sizing:border-box;" />
             <datalist id="productDatalist"></datalist>
         </div>
       </div>
@@ -2571,6 +2587,7 @@
       </div>
 
       <button id="btnSaveInvoice">${invoiceToEdit ? 'Save Changes' : 'Save & Print Receipt'}</button>
+      ${invoiceToEdit ? '<button id="btnPrintEditedInvoice" type="button" class="secondary-btn" style="margin-left: 8px;">🖨️ Print Bill</button>' : ''}
       ${!invoiceToEdit ? '<button id="btnSaveBill" type="button" class="secondary-btn" style="margin-left: 8px;">💾 Save Bill</button>' : ''}
       <button id="btnSendWhatsApp" type="button" class="success-btn" style="margin-left: 8px;">Send Bill via WhatsApp</button>
       <button id="btnCloseInvoice" class="secondary-btn" style="margin-left: 8px;">Cancel</button>
@@ -2787,6 +2804,24 @@
       finishBillSave(invoice, false);
     });
 
+    // In edit mode, Print Bill saves the current edits and prints the updated receipt.
+    document.getElementById('btnPrintEditedInvoice')?.addEventListener('click', () => {
+      if (window.billSaveInProgress) return;
+      window.billSaveInProgress = true;
+      const printButton = document.getElementById('btnPrintEditedInvoice');
+      if (printButton) printButton.disabled = true;
+      try {
+        const invoice = buildCurrentInvoice();
+        if (invoice) finishBillSave(invoice, true);
+        setTimeout(() => { window.billSaveInProgress = false; }, 1500);
+      } catch (err) {
+        window.billSaveInProgress = false;
+        if (printButton) printButton.disabled = false;
+        console.error('Print edited bill failed:', err);
+        alert('Could not print the bill. Please try again.');
+      }
+    });
+
     // WhatsApp: save the bill first, then open the prepared WhatsApp chat.
     btnSendWhatsApp.addEventListener('click', () => {
       const rawPhone = String(billingCustomerPhoneInput.value || '').trim();
@@ -2815,7 +2850,7 @@
         const payment=[]; if(invoice.cashAmount) payment.push('Cash ₹'+invoice.cashAmount); if(invoice.onlineAmount) payment.push('Online/UPI ₹'+invoice.onlineAmount);
         lines.push('Payment: '+payment.join(' + '));
       }
-      lines.push('','Thank you for shopping with us!');
+      lines.push('',getWhatsAppThankYouNote());
 
       // The browser can open WhatsApp with the message prepared, but ordinary
       // web pages cannot press WhatsApp's final Send button automatically.
@@ -2842,7 +2877,7 @@
         productDatalist.innerHTML = inStockProducts.map(p => {
             const safeName = String(p.name || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const safeCode = String(p.code || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return `<option value="${safeName}" label="Code: ${safeCode} | ${p.category || ''} | Qty: ${p.qty}">`;
+            return `<option value="${safeName}" label="Code: ${safeCode} | MRP: ₹${Number(p.mrp ?? p.sp ?? 0)} | ${p.category || ''} | Qty: ${p.qty}">`;
         }).join('');
     }
     
@@ -2896,7 +2931,7 @@
             return;
         }
 
-        let itemInInvoice = invoiceItems.find(it => String(it.code) === code);
+        let itemInInvoice = invoiceItems.find(it => String(it.code) === String(product.code));
         const maxQty = product.qty; 
         
         if (itemInInvoice) {
@@ -2947,7 +2982,9 @@
             </li>`;
         }).join('');
         
-        cartList.innerHTML = itemsHtml || `<li><em style="color:#888;">No items added yet.</em></li>`;
+        const totalItemQty = invoiceItems.filter(it => Number(it.qty) > 0).reduce((sum, it) => sum + (Number(it.qty) || 0), 0);
+        cartList.innerHTML = (itemsHtml || `<li><em style="color:#888;">No items added yet.</em></li>`) +
+            `<li style="display:flex;justify-content:space-between;font-weight:bold;border-top:1px solid #999;padding-top:7px;margin-top:7px;"><span>Total Items (Qty)</span><span>${totalItemQty}</span></li>`;
         
         [...cartList.querySelectorAll('button[data-type]')].forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -2970,7 +3007,9 @@
                 
                 updateCartList();
                 updateInvoiceTotal();
-                populateProductDatalist(); 
+                populateProductDatalist();
+                // Return focus to product selection after each cart +/- click.
+                billingSearchInput.focus();
             });
         });
 
@@ -3239,6 +3278,7 @@
               ${itemsTableRows}
             </tbody>
           </table>
+          <p style="margin:4px 0;font-weight:700;">Total Items (Qty): ${invoice.items.filter(it => Number(it.qty) > 0).reduce((sum,it)=>sum+(Number(it.qty)||0),0)}</p>
 
           <div class="line"></div>
 
@@ -3259,7 +3299,7 @@
           <div class="line"></div>
 
           <div class="center" style="margin-top:10px;">
-            <p style="margin:2px 0; font-weight:600;">Thank you for shopping with us!</p>
+            <p style="margin:2px 0; font-weight:600;white-space:pre-wrap;">${getPrintThankYouNote()}</p>
           </div>
 
           <script>
@@ -3862,6 +3902,7 @@
   let activeReportChart = null;
   let activeReportChart2 = null;
   let activeReportData = { headers: [], rows: [], footer: [], rowClasses: [] };
+  let reportSortState = { column: -1, direction: 'asc' };
 
   function initReportTab() {
     reportDateRangePreset.addEventListener('change', () => {
@@ -3978,10 +4019,31 @@
       reportDataTable.classList.remove('overall-vlines');
     }
 
-    reportTableHead.innerHTML = `<tr>${headers.map(h => {
+    reportTableHead.innerHTML = `<tr>${headers.map((h, colIndex) => {
       const isNum = !isNaN(parseFloat(h)) || h.toLowerCase().includes('amount') || h.toLowerCase().includes('cash') || h.toLowerCase().includes('online') || h.toLowerCase().includes('profit') || h.toLowerCase().includes('total') || h.toLowerCase().includes('qty') || h.toLowerCase().includes('cost') || h.toLowerCase().includes('price') || h.toLowerCase().includes('revenue');
-      return `<th class="${isNum ? 'num-align' : ''}">${formatTitleCase(h)}</th>`;
+      const arrow = reportSortState.column === colIndex ? (reportSortState.direction === 'asc' ? ' ▲' : ' ▼') : ' ↕';
+      return `<th class="${isNum ? 'num-align' : ''}" data-sort-column="${colIndex}" title="Click to sort ascending/descending" style="cursor:pointer;user-select:none;white-space:nowrap;">${formatTitleCase(h)}<span style="font-size:.8em;color:#64748b;">${arrow}</span></th>`;
     }).join('')}</tr>`;
+    reportTableHead.querySelectorAll('th[data-sort-column]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = Number(th.dataset.sortColumn);
+        const direction = reportSortState.column === col && reportSortState.direction === 'asc' ? 'desc' : 'asc';
+        reportSortState = { column: col, direction };
+        const indexedRows = activeReportData.rows.map((row, i) => ({ row, rowClass: activeReportData.rowClasses[i] || '', originalIndex: i }));
+        indexedRows.sort((a, b) => {
+          const av = a.row[col] ?? '', bv = b.row[col] ?? '';
+          const an = typeof av === 'number' ? av : (String(av).trim() !== '' && Number.isFinite(Number(String(av).replace(/[,₹%]/g, ''))) ? Number(String(av).replace(/[,₹%]/g, '')) : NaN);
+          const bn = typeof bv === 'number' ? bv : (String(bv).trim() !== '' && Number.isFinite(Number(String(bv).replace(/[,₹%]/g, ''))) ? Number(String(bv).replace(/[,₹%]/g, '')) : NaN);
+          let cmp;
+          if (Number.isFinite(an) && Number.isFinite(bn)) cmp = an - bn;
+          else cmp = String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' });
+          return direction === 'asc' ? cmp : -cmp;
+        });
+        activeReportData.rows = indexedRows.map(x => x.row);
+        activeReportData.rowClasses = indexedRows.map(x => x.rowClass);
+        renderReportTable(title, activeReportData.headers, activeReportData.rows, activeReportData.footer, activeReportData.rowClasses, isOverall);
+      });
+    });
 
     if (rows.length === 0) {
       reportTableBody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center;">No records found for the selected criteria.</td></tr>`;
@@ -4248,8 +4310,17 @@
         }
       });
 
-      rows = perfRows.sort((a,b) => a[0].localeCompare(b[0]));
-      footer = ["Total", "-", grandQty, grandProfit.toFixed(2), grandRev.toFixed(2)];
+      rows = Object.keys(itemQtyMap).sort((a,b) => a.localeCompare(b, undefined, {numeric:true})).map(itemKey => {
+        let itemRevenue = 0;
+        invoices.filter(inv => inv.date >= startStr && inv.date <= endStr).forEach(inv => {
+          (inv.items || []).filter(it => `${it.code} - ${it.name}` === itemKey).forEach(it => {
+            itemRevenue += Number(it.sp || 0) * Number(it.qty || 0);
+          });
+        });
+        return [itemKey, itemQtyMap[itemKey], itemProfitMap[itemKey].toFixed(2), itemRevenue.toFixed(2)];
+      });
+      headers = ["Item Code & Name", "Item Sold Qty", "Profit", "Total Revenue"];
+      footer = ["Total", grandQty, grandProfit.toFixed(2), grandRev.toFixed(2)];
 
       const itemLabels = Object.keys(itemQtyMap);
       const itemQtyData = itemLabels.map(k => itemQtyMap[k]);
@@ -4376,51 +4447,28 @@
       };
     }
     else if (type === 'stock') {
-      reportTitle = `Current Stock Valuation Report`;
-      headers = ["Category", "Total Products Listed", "In-Stock Units", "Total Cost Value (CP)", "Total Selling Value (SP)", "Potential Profit Margin"];
-
-      const catStockMap = {};
-      categories.forEach(c => { catStockMap[c] = { count: 0, units: 0, costVal: 0, sellVal: 0 }; });
-
-      products.forEach(p => {
-        const cat = categories.find(c => c.toLowerCase() === p.category.toLowerCase()) || 'Uncategorized';
-        if (!catStockMap[cat]) catStockMap[cat] = { count: 0, units: 0, costVal: 0, sellVal: 0 };
-
-        catStockMap[cat].count += 1;
-        catStockMap[cat].units += p.qty;
-        catStockMap[cat].costVal += (p.cp * p.qty);
-        catStockMap[cat].sellVal += (p.sp * p.qty);
-      });
-
-      let totProd = 0, totUnits = 0, totCost = 0, totSell = 0;
-
-      rows = Object.keys(catStockMap).map(c => {
-        const obj = catStockMap[c];
-        const margin = obj.sellVal - obj.costVal;
-        totProd += obj.count;
-        totUnits += obj.units;
-        totCost += obj.costVal;
-        totSell += obj.sellVal;
-
-        return [
-          c, obj.count, obj.units, obj.costVal.toFixed(2), obj.sellVal.toFixed(2), margin.toFixed(2)
-        ];
-      });
-
-      footer = ["Total", totProd, totUnits, totCost.toFixed(2), totSell.toFixed(2), (totSell - totCost).toFixed(2)];
-
-      const catNames = Object.keys(catStockMap);
+      reportTitle = `Current Stock Valuation Report (Item-Wise)`;
+      headers = ["Item Code & Name", "Category", "In-Stock Units", "Cost Price (CP)", "Selling Price (SP)", "Total Cost Value (CP)", "Total Selling Value (SP)", "Potential Profit Margin"];
+      let totUnits = 0, totCost = 0, totSell = 0;
+      rows = products.map(p => {
+        const qty = Number(p.qty) || 0, cp = Number(p.cp) || 0, sp = Number(p.sp) || 0;
+        const costVal = cp * qty, sellVal = sp * qty;
+        totUnits += qty; totCost += costVal; totSell += sellVal;
+        return [`${p.code} - ${p.name}`, p.category || 'Uncategorized', qty, cp.toFixed(2), sp.toFixed(2), costVal.toFixed(2), sellVal.toFixed(2), (sellVal-costVal).toFixed(2)];
+      }).sort((a,b) => String(a[0]).localeCompare(String(b[0]), undefined, {numeric:true}));
+      footer = ["Total", "-", totUnits, "-", "-", totCost.toFixed(2), totSell.toFixed(2), (totSell-totCost).toFixed(2)];
+      const itemLabels = products.map(p => `${p.code} - ${p.name}`);
       chartConfig1 = {
-        type: 'bar',
-        title: 'Inventory Stock Valuation by Category',
-        labels: catNames,
+        type: 'bar', title: 'Inventory Stock Valuation by Item',
+        labels: itemLabels.length ? itemLabels : ['No Data'],
         datasets: [
-          { label: 'Cost Valuation (CP)', data: catNames.map(c => catStockMap[c].costVal), backgroundColor: '#17a2b8' },
-          { label: 'Selling Valuation (SP)', data: catNames.map(c => catStockMap[c].sellVal), backgroundColor: '#28a745' }
+          { label: 'Cost Valuation (CP)', data: products.map(p => (Number(p.cp)||0)*(Number(p.qty)||0)), backgroundColor: '#17a2b8' },
+          { label: 'Selling Valuation (SP)', data: products.map(p => (Number(p.sp)||0)*(Number(p.qty)||0)), backgroundColor: '#28a745' }
         ]
       };
     }
 
+    reportSortState = { column: -1, direction: 'asc' };
     activeReportData = { headers, rows, footer, rowClasses };
     renderReportCharts(chartConfig1, chartConfig2);
     renderReportTable(reportTitle, headers, rows, footer, rowClasses, isOverall);
