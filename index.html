@@ -24,6 +24,9 @@
         
         section.tab-content { padding: 15px; display: none; }
         section.tab-content.active { display: block; }
+        section.tab-content.label-tab { padding: 0; }
+        section.tab-content.label-tab.active { height: calc(100vh - 95px); min-height: 520px; overflow: hidden; }
+        section.tab-content.label-tab iframe { display:block; width:100%; height:100%; min-height:520px; border:0; }
 
         input[type="text"], input[type="number"], input[type="date"], input[type="file"], select, textarea { width: 100%; padding: 6px 8px; margin: 3px 0 10px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.82rem; }
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -148,6 +151,7 @@
         <button data-tab="sales">Sales History</button>
         <button data-tab="dataImport">Data Import</button>
         <button data-tab="report">Reports</button>
+        <button data-tab="label">Label</button>
         <button data-tab="settings">Settings</button>
     </nav>
 
@@ -406,6 +410,7 @@
                         <button id="btnSaveProduct" type="button" disabled>Save / Update Stock</button>
                         <button id="btnClearProductForm" class="secondary-btn" type="button">Clear Form</button>
                         <button id="btnPrintBarcode" type="button" class="secondary-btn">Print Barcode Label</button>
+                         <button id="btnSaveBarcodeLabelImage" type="button" class="secondary-btn">Generate Label Image</button>
                     </div>
                     <div style="margin-top: 10px; text-align: center;"><svg id="barcodeSvg"></svg></div>
                 </form>
@@ -568,6 +573,271 @@
             <small style="color:#666;">This image will be centered at the top of printed receipts instead of the shop name.</small>
         </div>
         <div id="combinedImportStatus" style="margin-top:10px;"></div>
+    </section>
+
+    <section id="label" class="tab-content label-tab" aria-label="Label">
+        <iframe title="A4 Label Generator" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;title&gt;A4 PDF Label Generator&lt;/title&gt;
+&lt;style&gt;
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#172033;background:#f4f6fa}
+*{box-sizing:border-box}body{margin:0;padding:20px}main{max-width:1100px;margin:auto}
+h1{font-size:clamp(1.5rem,4vw,2.2rem);margin:0 0 8px}.intro{color:#566176;margin:0 0 22px}
+.panel{background:#fff;border:1px solid #dfe4ed;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 3px 14px #15264a0a}
+.images{display:grid;gap:12px}.image-row{display:grid;grid-template-columns:minmax(0,1fr) 115px auto;gap:12px;align-items:center;border:1px solid #e2e7ef;border-radius:12px;padding:12px}.logo-row{grid-template-columns:minmax(0,1fr) minmax(100px,auto) auto}
+.filearea{display:flex;align-items:center;gap:12px;min-width:0}.thumb{width:76px;height:66px;object-fit:contain;border:1px solid #d7dce5;border-radius:7px;background:#fafbfc;flex-shrink:0}.file-controls{min-width:0}.file-controls input[type=file]{max-width:100%;font-size:.9rem}.filename{font-size:.82rem;color:#657087;overflow-wrap:anywhere;margin-top:5px}
+label{font-size:.88rem;font-weight:650;display:block;margin-bottom:6px}input[type=number]{width:100%;padding:10px;border:1px solid #cbd3e1;border-radius:8px;font:inherit}
+button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px;cursor:pointer}.primary{background:#2458d3;color:#fff}.secondary{background:#eaf0ff;color:#1746b2}.danger{background:#fff0f0;color:#b42318}.actions{display:flex;gap:10px;flex-wrap:wrap}.stats{display:flex;gap:12px;flex-wrap:wrap}.stat{flex:1;min-width:140px;background:#f7f9fd;border:1px solid #e2e7ef;border-radius:10px;padding:13px}.stat strong{display:block;font-size:1.5rem}.muted{color:#657087;font-size:.88rem}.error{color:#b42318;background:#fff0f0;border:1px solid #ffcaca;border-radius:8px;padding:10px;margin-top:12px;display:none}.preview-wrap{overflow:auto;padding:10px;background:#edf0f5;border-radius:10px}.paper{width:min(100%,420px);min-width:280px;aspect-ratio:210/297;margin:auto;background:#fff;border:1px solid #c5cbd5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));gap:.5mm;overflow:hidden}.cell{border:.35px solid #333;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}.cell.empty{border:none}.cell img{width:100%;height:100%;object-fit:fill}.empty-mark{font-size:clamp(7px,1.5vw,11px);color:#b8bfcb}.footer-note{font-size:.82rem;color:#657087;margin-top:10px}
+@media(max-width:680px){body{padding:12px}.panel{padding:13px}.image-row{grid-template-columns:minmax(0,1fr) 92px;gap:10px}.logo-row{grid-template-columns:minmax(0,1fr) 92px}.logo-row .muted{grid-column:1/-1}.image-row .remove{grid-column:1/-1;justify-self:end}.filearea{align-items:flex-start}.thumb{width:62px;height:58px}.actions button{flex:1}.paper{width:100%;min-width:270px}}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;main&gt;
+  &lt;h1&gt;A4 PDF Label Generator&lt;/h1&gt;
+  &lt;p class=&quot;intro&quot;&gt;Upload label images, choose how many copies you need, and download a print-ready A4 PDF. Images stay on your device.&lt;/p&gt;
+  &lt;section class=&quot;panel&quot;&gt;
+    &lt;h2 style=&quot;font-size:1.15rem;margin:0 0 10px&quot;&gt;Logo Images&lt;/h2&gt;
+    &lt;p class=&quot;muted&quot;&gt;Optional: upload two logos to overlay on every label. Logo 1 appears at the top-left; Logo 2 at the top-right.&lt;/p&gt;
+    &lt;div class=&quot;images&quot; id=&quot;logos&quot;&gt;
+      &lt;div class=&quot;image-row logo-row&quot; data-logo=&quot;1&quot;&gt;&lt;div class=&quot;filearea&quot;&gt;&lt;img class=&quot;thumb logo-thumb&quot; alt=&quot;Logo 1 preview&quot;&gt;&lt;div class=&quot;file-controls&quot;&gt;&lt;label for=&quot;logoFile1&quot;&gt;Logo 1&lt;/label&gt;&lt;input id=&quot;logoFile1&quot; type=&quot;file&quot; accept=&quot;image/*&quot;&gt;&lt;div class=&quot;filename&quot; id=&quot;logoName1&quot;&gt;No logo selected&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;muted&quot;&gt;Every label&lt;/div&gt;&lt;button class=&quot;danger remove-logo&quot; type=&quot;button&quot;&gt;Remove Logo&lt;/button&gt;&lt;/div&gt;
+      &lt;div class=&quot;image-row logo-row&quot; data-logo=&quot;2&quot;&gt;&lt;div class=&quot;filearea&quot;&gt;&lt;img class=&quot;thumb logo-thumb&quot; alt=&quot;Logo 2 preview&quot;&gt;&lt;div class=&quot;file-controls&quot;&gt;&lt;label for=&quot;logoFile2&quot;&gt;Logo 2&lt;/label&gt;&lt;input id=&quot;logoFile2&quot; type=&quot;file&quot; accept=&quot;image/*&quot;&gt;&lt;div class=&quot;filename&quot; id=&quot;logoName2&quot;&gt;No logo selected&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;muted&quot;&gt;Every label&lt;/div&gt;&lt;button class=&quot;danger remove-logo&quot; type=&quot;button&quot;&gt;Remove Logo&lt;/button&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;images&quot; id=&quot;images&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;actions&quot; style=&quot;margin-top:14px&quot;&gt;&lt;button class=&quot;secondary&quot; id=&quot;addBtn&quot; type=&quot;button&quot;&gt;＋ Add Image&lt;/button&gt;&lt;/div&gt;
+    &lt;div class=&quot;error&quot; id=&quot;error&quot; role=&quot;alert&quot;&gt;&lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;stats&quot;&gt;
+      &lt;div class=&quot;stat&quot;&gt;&lt;span class=&quot;muted&quot;&gt;Total Copies&lt;/span&gt;&lt;strong id=&quot;total&quot;&gt;0&lt;/strong&gt;&lt;/div&gt;
+      &lt;div class=&quot;stat&quot;&gt;&lt;span class=&quot;muted&quot;&gt;Estimated PDF Pages&lt;/span&gt;&lt;strong id=&quot;pages&quot;&gt;0&lt;/strong&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section class=&quot;panel&quot;&gt;
+    &lt;h2 style=&quot;font-size:1.15rem;margin:0 0 10px&quot;&gt;Layout Preview — First A4 Page&lt;/h2&gt;
+    &lt;div class=&quot;preview-wrap&quot;&gt;&lt;div class=&quot;paper&quot; id=&quot;paper&quot; aria-label=&quot;Preview of 32 label positions&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;p class=&quot;footer-note&quot;&gt;Preview shows the first 32 positions. Labels fill left to right, top to bottom. The printed PDF uses A4 portrait, exact label dimensions, 0.5 mm gaps, and visible borders.&lt;/p&gt;
+  &lt;/section&gt;
+  &lt;section class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;actions&quot;&gt;
+      &lt;button class=&quot;primary&quot; id=&quot;generateBtn&quot; type=&quot;button&quot;&gt;Generate and Download PDF&lt;/button&gt;
+      &lt;button class=&quot;secondary&quot; id=&quot;printBtn&quot; type=&quot;button&quot;&gt;Print PDF&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;p class=&quot;footer-note&quot;&gt;PDF filename: &lt;b&gt;A4-labels.pdf&lt;/b&gt;. Use “Print PDF” to generate the current labels and open the browser print dialog. For exact physical sizing, print at “Actual size” / 100% and disable “Fit to page”.&lt;/p&gt;
+  &lt;/section&gt;
+&lt;/main&gt;
+&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const $ = id =&gt; document.getElementById(id);
+  const list = $(&#x27;images&#x27;), paper = $(&#x27;paper&#x27;), errorBox = $(&#x27;error&#x27;);
+  let nextId = 1;
+  const entries = new Map();
+  const LABEL_W = 52.125, LABEL_H = 36.8125, GAP = 0.5, PER_PAGE = 32;
+  const logos = [null, null];
+  const LOGO_STORAGE_KEY = &#x27;gensWorldA4LabelLogos_v1&#x27;;
+  function persistLogos() {
+    try { localStorage.setItem(LOGO_STORAGE_KEY, JSON.stringify(logos.map(logo =&gt; logo ? {dataUrl: logo.dataUrl, name: logo.file?.name || &#x27;Saved logo&#x27;} : null))); } catch (e) { showError(&#x27;Logo could not be remembered. The image may be too large for browser storage.&#x27;); }
+  }
+  function restoreLogos() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LOGO_STORAGE_KEY) || &#x27;null&#x27;);
+      if (!Array.isArray(saved)) return;
+      saved.slice(0, 2).forEach((item, index) =&gt; {
+        if (!item?.dataUrl) return;
+        logos[index] = {dataUrl: item.dataUrl, file: {name: item.name || &#x27;Saved logo&#x27;, type: &#x27;image/png&#x27;}};
+        const num = index + 1, thumb = document.querySelector(&#x27;[data-logo=&quot;&#x27; + num + &#x27;&quot;] .logo-thumb&#x27;);
+        thumb.src = item.dataUrl;
+        $(&#x27;logoName&#x27; + num).textContent = (item.name || &#x27;Saved logo&#x27;) + &#x27; (remembered)&#x27;;
+      });
+    } catch (e) {}
+  }
+  [1, 2].forEach((num, index) =&gt; {
+    const input = $(&#x27;logoFile&#x27; + num);
+    const thumb = document.querySelector(&#x27;[data-logo=&quot;&#x27; + num + &#x27;&quot;] .logo-thumb&#x27;);
+    const name = $(&#x27;logoName&#x27; + num);
+    input.addEventListener(&#x27;change&#x27;, () =&gt; {
+      clearError();
+      const file = input.files &amp;&amp; input.files[0];
+      logos[index] = null;
+      if (!file) { thumb.removeAttribute(&#x27;src&#x27;); name.textContent = &#x27;No logo selected&#x27;; return; }
+      if (!file.type.startsWith(&#x27;image/&#x27;)) { input.value = &#x27;&#x27;; showError(&#x27;Please select a valid image for Logo &#x27; + num + &#x27;.&#x27;); return; }
+      const reader = new FileReader();
+      reader.onload = () =&gt; { logos[index] = {dataUrl: reader.result, file}; thumb.src = reader.result; persistLogos(); };
+      reader.onerror = () =&gt; showError(&#x27;Could not read Logo &#x27; + num + &#x27;. Please try another image.&#x27;);
+      reader.readAsDataURL(file);
+      name.textContent = file.name;
+    });
+    document.querySelector(&#x27;[data-logo=&quot;&#x27; + num + &#x27;&quot;] .remove-logo&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+      input.value = &#x27;&#x27;; logos[index] = null; thumb.removeAttribute(&#x27;src&#x27;); name.textContent = &#x27;No logo selected&#x27;; persistLogos();
+    });
+  });
+  restoreLogos();
+  const esc = s =&gt; String(s).replace(/[&amp;&lt;&gt;&quot;&#x27;]/g, c =&gt; ({&#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;,&#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;,&#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;,&#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;,&quot;&#x27;&quot;:&#x27;&amp;#39;&#x27;}[c]));
+  function showError(msg){ errorBox.textContent = msg; errorBox.style.display = &#x27;block&#x27;; }
+  function clearError(){ errorBox.textContent = &#x27;&#x27;; errorBox.style.display = &#x27;none&#x27;; }
+  function validCount(input){ const n = Number(input.value); return Number.isSafeInteger(n) &amp;&amp; n &gt; 0 ? n : 0; }
+  function orderedEntries(){ return [...list.querySelectorAll(&#x27;.image-row&#x27;)].map(row =&gt; entries.get(Number(row.dataset.id))).filter(Boolean); }
+  function addRow(){
+    const id = nextId++;
+    const row = document.createElement(&#x27;div&#x27;); row.className = &#x27;image-row&#x27;; row.dataset.id = id;
+    row.innerHTML = `&lt;div class=&quot;filearea&quot;&gt;&lt;img class=&quot;thumb&quot; alt=&quot;Image preview&quot; src=&quot;data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=&quot;&gt;&lt;div class=&quot;file-controls&quot;&gt;&lt;label for=&quot;file-${id}&quot;&gt;Image ${id}&lt;/label&gt;&lt;input id=&quot;file-${id}&quot; type=&quot;file&quot; accept=&quot;image/*&quot;&gt;&lt;div class=&quot;filename&quot;&gt;No image selected&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;label for=&quot;count-${id}&quot;&gt;Copies&lt;/label&gt;&lt;input id=&quot;count-${id}&quot; type=&quot;number&quot; min=&quot;1&quot; step=&quot;1&quot; value=&quot;1&quot; inputmode=&quot;numeric&quot;&gt;&lt;/div&gt;&lt;button class=&quot;danger remove&quot; type=&quot;button&quot;&gt;Remove Image&lt;/button&gt;`;
+    list.appendChild(row);
+    const entry = {id, row, file:null, dataUrl:null, loadPromise:null};
+    entries.set(id, entry);
+    const fileInput = row.querySelector(&#x27;input[type=file]&#x27;);
+    const countInput = row.querySelector(&#x27;input[type=number]&#x27;);
+    fileInput.addEventListener(&#x27;change&#x27;, () =&gt; {
+      clearError();
+      const file = fileInput.files &amp;&amp; fileInput.files[0];
+      entry.file = file || null; entry.dataUrl = null; entry.loadPromise = null;
+      const thumb = row.querySelector(&#x27;.thumb&#x27;);
+      row.querySelector(&#x27;.filename&#x27;).textContent = file ? file.name : &#x27;No image selected&#x27;;
+      if(!file){ thumb.removeAttribute(&#x27;src&#x27;); refresh(); return; }
+      if(!file.type.startsWith(&#x27;image/&#x27;)) { entry.file=null; fileInput.value=&#x27;&#x27;; showError(&#x27;Please select a valid image file.&#x27;); refresh(); return; }
+      const reader = new FileReader();
+      reader.onload = () =&gt; {
+        entry.dataUrl = reader.result;
+        thumb.src = entry.dataUrl;
+        thumb.onerror = () =&gt; showError(&#x27;This image could not be previewed. Please choose another file.&#x27;);
+        refresh();
+      };
+      reader.onerror = () =&gt; { showError(&#x27;Could not read that image. Please try another file.&#x27;); entry.file=null; refresh(); };
+      reader.readAsDataURL(file);
+      refresh();
+    });
+    countInput.addEventListener(&#x27;input&#x27;, () =&gt; { clearError(); refresh(); });
+    row.querySelector(&#x27;.remove&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+      entries.delete(id); row.remove(); refresh();
+      if(!list.querySelector(&#x27;.image-row&#x27;)) addRow();
+    });
+    refresh();
+  }
+  function refresh(){
+    const rows = orderedEntries();
+    let total = 0;
+    rows.forEach(e =&gt; { const n = validCount(e.row.querySelector(&#x27;input[type=number]&#x27;)); if(e.dataUrl &amp;&amp; n) total += n; });
+    $(&#x27;total&#x27;).textContent = total.toLocaleString();
+    $(&#x27;pages&#x27;).textContent = Math.ceil(total/PER_PAGE).toLocaleString();
+    paper.innerHTML = &#x27;&#x27;;
+    const placements = [];
+    rows.forEach(e =&gt; {
+      const n = validCount(e.row.querySelector(&#x27;input[type=number]&#x27;));
+      if(e.dataUrl &amp;&amp; n) for(let i=0;i&lt;n &amp;&amp; placements.length&lt;PER_PAGE;i++) placements.push(e.dataUrl);
+    });
+    for(let i=0;i&lt;PER_PAGE;i++){
+      const cell = document.createElement(&#x27;div&#x27;); cell.className = placements[i] ? &#x27;cell&#x27; : &#x27;cell empty&#x27;;
+      if(placements[i]) { const img=document.createElement(&#x27;img&#x27;); img.src=placements[i]; img.alt=&#x27;Label preview&#x27;; cell.appendChild(img); }
+      else { const mark=document.createElement(&#x27;span&#x27;); mark.className=&#x27;empty-mark&#x27;; mark.textContent=&#x27;&#x27;; cell.appendChild(mark); }
+      paper.appendChild(cell);
+    }
+  }
+  async function imageDimensions(dataUrl){
+    return new Promise((resolve,reject) =&gt; {
+      const img = new Image();
+      img.onload = () =&gt; resolve({width:img.naturalWidth,height:img.naturalHeight});
+      img.onerror = () =&gt; reject(new Error(&#x27;One of the uploaded images could not be read. Please remove it and upload it again.&#x27;));
+      img.src = dataUrl;
+    });
+  }
+  async function canvasData(entry){
+    // Re-encode through canvas for broad jsPDF compatibility; source remains local.
+    const img = new Image();
+    await new Promise((resolve,reject)=&gt;{img.onload=resolve;img.onerror=()=&gt;reject(new Error(&#x27;An uploaded image could not be decoded. Please try another image.&#x27;));img.src=entry.dataUrl;});
+    const canvas=document.createElement(&#x27;canvas&#x27;);
+    canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+    const ctx=canvas.getContext(&#x27;2d&#x27;);
+    if(!ctx) throw new Error(&#x27;Your browser could not process an image.&#x27;);
+    ctx.drawImage(img,0,0);
+    const isPng = entry.file &amp;&amp; (/png|webp|gif/i.test(entry.file.type));
+    return {data:canvas.toDataURL(isPng?&#x27;image/png&#x27;:&#x27;image/jpeg&#x27;,0.94),format:isPng?&#x27;PNG&#x27;:&#x27;JPEG&#x27;};
+  }
+  async function generate(shouldPrint = false){
+    clearError();
+    const rows = orderedEntries();
+    const selected = [];
+    for(const e of rows){
+      const input=e.row.querySelector(&#x27;input[type=number]&#x27;);
+      const n=validCount(input);
+      if(input.value.trim()===&#x27;&#x27; || n&lt;1){ showError(&#x27;Each copy count must be a positive whole number.&#x27;); input.focus(); return; }
+      if(e.file &amp;&amp; e.dataUrl) {
+        if(n &gt; 100000 || selected.length+n &gt; 100000){showError(&#x27;Please keep the total at or below 100,000 copies.&#x27;);return;}
+        selected.push({entry:e,count:n});
+      }
+    }
+    if(!selected.length){showError(&#x27;Please upload at least one valid image before generating the PDF.&#x27;);return;}
+    const btn=$(&#x27;generateBtn&#x27;), old=btn.textContent; btn.disabled=true; btn.textContent=&#x27;Generating PDF…&#x27;;
+    try{
+      if(!window.jspdf || !window.jspdf.jsPDF) throw new Error(&#x27;The PDF library could not load. Check your internet connection and reopen this HTML file.&#x27;);
+      const {jsPDF}=window.jspdf;
+      const pdf=new jsPDF({orientation:&#x27;portrait&#x27;,unit:&#x27;mm&#x27;,format:&#x27;a4&#x27;,compress:true});
+      const converted=[];
+      for(const item of selected) converted.push({...item,converted:await canvasData(item.entry)});
+      const convertedLogos = [];
+      for (const logo of logos) {
+        if (!logo) { convertedLogos.push(null); continue; }
+        convertedLogos.push(await canvasData({dataUrl: logo.dataUrl, file: logo.file}));
+      }
+      let pos=0;
+      for(const item of converted){
+        for(let i=0;i&lt;item.count;i++){
+          if(pos&gt;0 &amp;&amp; pos%PER_PAGE===0) pdf.addPage(&#x27;a4&#x27;,&#x27;portrait&#x27;);
+          const slot=pos%PER_PAGE, col=slot%4, row=Math.floor(slot/4);
+          const x=col*(LABEL_W+GAP), y=row*(LABEL_H+GAP);
+          pdf.addImage(item.converted.data,item.converted.format,x,y,LABEL_W,LABEL_H,undefined,&#x27;FAST&#x27;);
+          // Optional logos appear in the top corners of every label.
+          const logoSize = 8, inset = 1;
+          if (convertedLogos[0]) pdf.addImage(convertedLogos[0].data, convertedLogos[0].format, x + inset, y + inset, logoSize, logoSize, undefined, &#x27;FAST&#x27;);
+          if (convertedLogos[1]) pdf.addImage(convertedLogos[1].data, convertedLogos[1].format, x + LABEL_W - logoSize - inset, y + inset, logoSize, logoSize, undefined, &#x27;FAST&#x27;);
+          pdf.setDrawColor(35,35,35); pdf.setLineWidth(0.15);
+          pdf.rect(x,y,LABEL_W,LABEL_H,&#x27;S&#x27;);
+          pos++;
+        }
+      }
+      if (shouldPrint) {
+        const blob = pdf.output(&#x27;blob&#x27;);
+        const blobUrl = URL.createObjectURL(blob);
+        const printFrame = document.createElement(&#x27;iframe&#x27;);
+        printFrame.style.position = &#x27;fixed&#x27;;
+        printFrame.style.right = &#x27;0&#x27;;
+        printFrame.style.bottom = &#x27;0&#x27;;
+        printFrame.style.width = &#x27;1px&#x27;;
+        printFrame.style.height = &#x27;1px&#x27;;
+        printFrame.style.border = &#x27;0&#x27;;
+        printFrame.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
+        document.body.appendChild(printFrame);
+        printFrame.onload = () =&gt; {
+          try {
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+          } catch (e) {
+            window.open(blobUrl, &#x27;_blank&#x27;);
+          }
+          setTimeout(() =&gt; {
+            URL.revokeObjectURL(blobUrl);
+            printFrame.remove();
+          }, 60000);
+        };
+        printFrame.src = blobUrl;
+      } else {
+        pdf.save(&#x27;A4-labels.pdf&#x27;);
+      }
+    }catch(err){ showError(err &amp;&amp; err.message ? err.message : &#x27;PDF generation failed. Please try again with different images.&#x27;); }
+    finally{btn.disabled=false;btn.textContent=old;}
+  }
+  $(&#x27;addBtn&#x27;).addEventListener(&#x27;click&#x27;, addRow);
+  $(&#x27;generateBtn&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; generate(false));
+  $(&#x27;printBtn&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; generate(true));
+  addRow();
+})();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+&quot; style=&quot;display:block;width:100%;height:100%;min-height:520px;border:0;border-radius:0;background:#f4f6fa;&quot;"></iframe>
     </section>
 
     <section id="settings" class="tab-content" aria-label="Settings">
@@ -1987,19 +2257,19 @@
       <html><head><title>Label ${safe(code)}</title>
       <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
       <style>
-        @page{size:58mm 40mm;margin:0}
+        @page{size:52.125mm 36.8125mm;margin:0}
         *{box-sizing:border-box}
-        html,body{width:58mm;height:40mm;margin:0;padding:0;background:#fff}
+        html,body{width:52.125mm;height:36.8125mm;margin:0;padding:0;background:#fff}
         body{font-family:Arial,Helvetica,sans-serif;color:#000}
-        .label{width:58mm;height:40mm;padding:2.2mm 2.5mm;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
-        .name{width:100%;font-size:10px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1mm}
-        #bc{width:48mm;height:16mm}
-        .code{font-size:8px;font-weight:600;margin-top:0.8mm;letter-spacing:.2px}
-        .mrp{font-size:10px;font-weight:700;margin-top:.8mm}
+        .label{width:52.125mm;height:36.8125mm;padding:.35mm .5mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:hidden;gap:0}
+        .shop,.name{width:100%;font-size:8.5px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.02;flex:0 0 auto}.name{font-size:9.5px;margin-top:.35mm}
+        #bc{display:block;width:100%;height:21mm;max-width:100%;flex:0 0 21mm;margin-top:.5mm;margin-bottom:.1mm}
+        .code{font-size:7.5px;font-weight:700;letter-spacing:.1px;line-height:1;flex:0 0 auto}
+        .mrp{font-size:10px;font-weight:700;line-height:1;flex:0 0 auto;margin-top:auto;margin-bottom:1mm}
       </style></head><body>
-      <div class="label"><div class="name">${safe(name)}</div><svg id="bc"></svg><div class="code">${safe(code)}</div><div class="mrp">MRP: ${formatINR(mrp)}</div></div>
+      <div class="label"><div class="shop">${safe(getShopName())}</div><div class="name">${safe(name)}</div><svg id="bc"></svg><div class="code">${safe(code)}</div><div class="mrp">MRP: ${formatINR(mrp)}</div></div>
       <script>
-        JsBarcode('#bc', ${JSON.stringify(code)}, {format:'CODE128', width:1.35, height:55, displayValue:false, margin:0});
+        JsBarcode('#bc', ${JSON.stringify(code)}, {format:'CODE128', width:1.05, height:80, displayValue:false, margin:0});
         setTimeout(()=>{window.print();window.close();},700);
       <\/script></body></html>`);
     printWin.document.close();
@@ -2007,6 +2277,96 @@
 
   btnPrintBarcode.addEventListener('click', () => {
     printProductLabel({code:uniqueCodeInput.value.trim(),name:productNameInput.value.trim(),mrp:sellingPriceInput.value.trim()});
+  });
+
+  // Generate and download a PNG label. The filename includes all visible label content.
+  const btnSaveBarcodeLabelImage = document.getElementById('btnSaveBarcodeLabelImage');
+  btnSaveBarcodeLabelImage?.addEventListener('click', () => {
+    const code = uniqueCodeInput.value.trim();
+    const name = productNameInput.value.trim();
+    const mrpRaw = sellingPriceInput.value.trim();
+    if (!code || !name || mrpRaw === '') {
+      alert('Please enter the product name, barcode number and MRP before generating the label image.');
+      return;
+    }
+    if (typeof JsBarcode !== 'function') {
+      alert('Barcode library is not available. Check your internet connection and try again.');
+      return;
+    }
+    try {
+      const canvas = document.createElement('canvas');
+      // Label image frame: 52.125 × 36.8125 mm at approximately 16 pixels/mm
+      canvas.width = 834;
+      canvas.height = 589;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const shopName = getShopName();
+      const contentWidth = canvas.width - 12;
+      const fitText = (text, maxWidth, startSize, minSize = 10, weight = '600') => {
+        let size = startSize;
+        ctx.font = `${weight} ${size}px Arial`;
+        while (ctx.measureText(text).width > maxWidth && size > minSize) {
+          size -= 1;
+          ctx.font = `${weight} ${size}px Arial`;
+        }
+        return size;
+      };
+
+      // Spread the label content vertically to fill the existing 52.125 × 36.8125 mm frame.
+      ctx.font = `700 ${fitText(shopName, contentWidth, 29, 12, '700')}px Arial`;
+      ctx.fillText(shopName, canvas.width / 2, 24, contentWidth);
+      ctx.font = `700 ${fitText(name, contentWidth, 31, 12, '700')}px Arial`;
+      ctx.fillText(name, canvas.width / 2, 62, contentWidth);
+
+      const barcodeCanvas = document.createElement('canvas');
+      JsBarcode(barcodeCanvas, code, {
+        format: 'CODE128', width: 3.0, height: 230,
+        displayValue: false, margin: 0, background: '#ffffff', lineColor: '#000000'
+      });
+      const maxBarcodeWidth = canvas.width - 12;
+      const maxBarcodeHeight = 320;
+      const scale = Math.min(maxBarcodeWidth / barcodeCanvas.width, maxBarcodeHeight / barcodeCanvas.height);
+      const barcodeWidth = barcodeCanvas.width * scale;
+      const barcodeHeight = barcodeCanvas.height * scale;
+      const barcodeTop = 88;
+      ctx.drawImage(barcodeCanvas, (canvas.width - barcodeWidth) / 2, barcodeTop, barcodeWidth, barcodeHeight);
+
+      const codeY = Math.min(barcodeTop + barcodeHeight + 18, 450);
+      ctx.font = `600 ${fitText(code, contentWidth, 24, 11, '600')}px Arial`;
+      ctx.fillText(code, canvas.width / 2, codeY, contentWidth);
+      const mrpText = `MRP: ₹${Number(mrpRaw).toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
+      ctx.font = `700 ${fitText(mrpText, contentWidth, 34, 12, '700')}px Arial`;
+      ctx.fillText(mrpText, canvas.width / 2, 548, contentWidth);
+
+      const safePart = value => String(value).trim()
+        .replace(/[\\/:*?"<>|]/g, '-')
+        .replace(/\s+/g, '_')
+        .replace(/-+/g, '-')
+        .slice(0, 80);
+      const fileName = `${safePart(shopName)}_${safePart(name)}_${safePart(code)}_${safePart(mrpText)}.png`;
+      canvas.toBlob(blob => {
+        if (!blob) {
+          alert('Could not generate the label image. Please try again.');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }, 'image/png');
+    } catch (err) {
+      console.error(err);
+      alert('Could not generate the label image. Please check the barcode number and try again.');
+    }
   });
 
   function generateUniqueCode(costPrice, productName){
@@ -2900,6 +3260,25 @@
         addItemToInvoiceByCode(code);
         billingSearchInput.value = '';
         billingSearchInput.focus();
+    });
+
+    // Barcode scanners often type the full code without sending Enter.
+    // Add immediately when the input exactly matches a known product code.
+    let lastAutoAddedBarcode = '';
+    billingSearchInput.addEventListener('input', () => {
+        const code = billingSearchInput.value.trim();
+        if (!code) {
+            lastAutoAddedBarcode = '';
+            return;
+        }
+        const exactMatch = products.some(p => String(p.code ?? '').trim() === code);
+        if (exactMatch && code !== lastAutoAddedBarcode) {
+            lastAutoAddedBarcode = code;
+            addItemToInvoiceByCode(code);
+            billingSearchInput.value = '';
+            billingSearchInput.focus();
+            lastAutoAddedBarcode = '';
+        }
     });
     
     billingSearchInput.addEventListener('keydown', (e) => {
@@ -4528,3 +4907,6 @@
 </script>
 </body>
 </html>
+
+we already have a button to print lable now add a button to generate lable image next to it to save the image on click make the process of saving image file name is always all the content in that lable 
+if barcode number matches the exact number then add that entry no need to press enter
