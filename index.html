@@ -149,6 +149,7 @@
         <button data-tab="masterInventory">Master Inventory</button>
         <button data-tab="stock">Purchase History</button>
         <button data-tab="sales">Sales History</button>
+        <button data-tab="identity">Identity</button>
         <button data-tab="dataImport">Data Import</button>
         <button data-tab="report">Reports</button>
         <button data-tab="label">Label</button>
@@ -400,8 +401,8 @@
                     </div>
 
                     <div class="grid-2">
-                        <div><label for="refBillNo">Ref Bill Number (Optional)</label><input type="text" id="refBillNo" placeholder="e.g., BILL-1029"></div>
-                        <div><label for="sellerName">Seller (Optional)</label><input type="text" id="sellerName" placeholder="e.g., ABC Traders"></div>
+                        <div><label for="refBillNo">Ref Bill Number (Optional)</label><input type="text" id="refBillNo" placeholder="e.g., BILL-1029" autocomplete="off"></div>
+                        <div><label for="sellerName">Seller (Optional)</label><input type="text" id="sellerName" list="sellerNameDatalist" placeholder="e.g., ABC Traders"><datalist id="sellerNameDatalist"></datalist></div>
                     </div>
                     
                     <div id="sellPriceWarning" class="warning" style="display:none;"></div>
@@ -455,7 +456,7 @@
         
         <div style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 0.8rem;">
             <div style="flex: 1;">
-                <label for="searchStock">Filter by Name, Code, Category or Seller</label>
+                <label for="searchStock">Search Name, Code, Category, Seller, Ref Bill or Purchase ID</label>
                 <input type="text" id="searchStock" placeholder="Type to filter..." style="margin-bottom:0;">
             </div>
             <button id="btnDownloadStock" class="success-btn" style="margin-top:0;">Export Purchase History (XLSX)</button>
@@ -497,7 +498,7 @@
     </section>
 
     <section id="sales" class="tab-content" aria-label="Sales History">
-        <h2 style="font-size: 1.1rem; margin-top: 0;">Sales History</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><h2 style="font-size: 1.1rem; margin-top: 0;">Sales History</h2><button id="btnExportSalesHistory" type="button" class="success-btn">Export Sales History (XLSX)</button></div>
 
         <div style="display: flex; gap: 1rem; margin-bottom: 0.8rem;">
           <div style="flex: 1;">
@@ -516,6 +517,7 @@
               <tr>
                 <th>Date</th>
                 <th>ID</th>
+                <th>Customer ID</th>
                 <th>Customer Name</th>
                 <th>Customer Number</th>
                 <th class="num-align">Cash (₹)</th>
@@ -528,6 +530,17 @@
             </thead>
             <tbody>
             </tbody>
+            <tfoot>
+              <tr id="salesOverallTotals" style="font-weight:bold;background:#f1f3f5;">
+                <td colspan="5">Overall Total (All Sales)</td>
+                <td class="num-align" id="salesTotalCash">₹0.00</td>
+                <td class="num-align" id="salesTotalOnline">₹0.00</td>
+                <td></td>
+                <td class="num-align" id="salesTotalAmount">₹0.00</td>
+                <td class="num-align" id="salesTotalProfit">₹0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
     </section>
@@ -546,6 +559,14 @@
             <small style="color:#475569; display:block; margin-top:8px; line-height:1.5;">
                 Each row represents a date. Sales quantities are read from the <strong>sold QTY</strong> columns, purchases from the <strong>Purchase QTY + cost/amount</strong> columns, and expenses from <strong>Any expenses + Amount</strong>. Existing inventory prices are used for sales because the sales section of your format contains quantities, not selling prices.
             </small>
+        </div>
+        <div style="margin-top:14px;padding:14px;background:#fff;border:1px solid #ddd;border-radius:6px;">
+            <h3 style="margin:0 0 8px;">Separate Sales / Purchase Import</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">
+                <div><label for="salesImportFile">Sales History Excel / CSV (same columns as Sales export)</label><input type="file" id="salesImportFile" accept=".xlsx,.xls,.csv"><button type="button" id="btnImportSales" class="success-btn">Import Sales</button> <button type="button" id="btnDownloadSalesTemplate" class="secondary-btn">Download Sales Template</button></div>
+                <div><label for="purchaseImportFile">Purchase History Excel / CSV (same columns as Purchase export)</label><input type="file" id="purchaseImportFile" accept=".xlsx,.xls,.csv"><button type="button" id="btnImportPurchases" class="success-btn">Import Purchases</button> <button type="button" id="btnDownloadPurchaseTemplate" class="secondary-btn">Download Purchase Template</button></div>
+            </div>
+            <small style="display:block;color:#666;margin-top:8px;">Use the exported Sales History or Purchase History workbook as the matching import format. Existing records with the same invoice or purchase ID are updated, not duplicated.</small>
         </div>
         <div id="googleSheetsStorageBox" style="margin-top:14px; padding:14px; background:#fff; border:1px solid #ddd; border-radius:6px;">
             <h3 style="margin:0 0 8px 0;">Google Sheets Online Storage — Master Database</h3>
@@ -573,6 +594,65 @@
             <small style="color:#666;">This image will be centered at the top of printed receipts instead of the shop name.</small>
         </div>
         <div id="combinedImportStatus" style="margin-top:10px;"></div>
+    </section>
+
+    <section id="identity" class="tab-content" aria-label="Identity">
+      <h2 style="font-size:1.1rem;margin-top:0;">Identity Management</h2>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 14px;">
+        <label><input type="radio" name="identityView" value="seller" checked> Seller</label>
+        <label><input type="radio" name="identityView" value="customer"> Customer</label>
+        <label><input type="radio" name="identityView" value="employee"> Employee</label>
+      </div>
+      <div id="identitySellerPanel" class="identity-panel" style="border:1px solid #ddd;border-radius:7px;padding:12px;">
+        <h3>Seller</h3><form id="sellerIdentityForm">
+          <label>Seller Name</label><input id="identitySellerName" required>
+          <label>Contact Number</label><input id="identitySellerContact" type="tel">
+          <label>Location</label><input id="identitySellerLocation">
+          <label>Address</label><textarea id="identitySellerAddress" rows="2"></textarea>
+          <button type="submit" class="success-btn" id="btnSaveIdentitySeller">Save Seller</button><button type="button" class="secondary-btn" id="btnClearIdentitySeller">Clear</button>
+        </form><div id="identitySellerList" class="scrollable" style="max-height:260px;margin-top:10px;"></div>
+        <div id="sellerPurchaseHistory" style="margin-top:8px;"></div>
+      </div>
+      <div id="identityCustomerPanel" class="identity-panel" style="display:none;border:1px solid #ddd;border-radius:7px;padding:12px;">
+        <h3>Customer</h3><form id="customerIdentityForm">
+          <label>Customer ID</label><input id="identityCustomerId" readonly placeholder="Auto generated">
+          <label>Customer Name</label><input id="identityCustomerName" required>
+          <label>Contact Number</label><input id="identityCustomerPhone" type="tel">
+          <label>Location</label><input id="identityCustomerLocation" placeholder="City / Area">
+          <label>Address</label><textarea id="identityCustomerAddress" rows="2" placeholder="Full address"></textarea>
+          <button type="submit" class="success-btn" id="btnSaveIdentityCustomer">Save Customer</button><button type="button" class="secondary-btn" id="btnClearIdentityCustomer">Clear</button>
+        </form><div id="identityCustomerList" class="scrollable" style="max-height:260px;margin-top:10px;"></div>
+        <div id="customerPurchaseHistory" style="margin-top:8px;"></div>
+      </div>
+      <div id="identityEmployeePanel" class="identity-panel" style="display:none;border:1px solid #ddd;border-radius:7px;padding:12px;">
+        <h3>Employee</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" id="btnShowAddEmployee" class="success-btn">Add Employee</button>
+          <button type="button" id="btnShowAttendance" class="secondary-btn">Attendance</button>
+          <button type="button" id="btnViewAttendance" class="secondary-btn">View Attendance</button>
+        </div>
+        <form id="employeeIdentityForm" style="display:none;margin-top:12px;">
+          <label>Employee ID</label><input id="identityEmployeeId" readonly placeholder="Auto generated">
+          <label>Employee Name</label><input id="identityEmployeeName" required>
+          <label>Contact Number</label><input id="identityEmployeePhone" type="tel">
+          <label>Payment Type</label>
+          <select id="identityEmployeeSalaryType"><option value="monthly">Monthly Salary</option><option value="daily">Daily Wages</option></select>
+          <label id="identityEmployeeRateLabel">Monthly Salary (₹)</label><input id="identityEmployeeSalary" type="number" min="0" step="0.01" value="0" required>
+          <button type="submit" class="success-btn" id="btnSaveIdentityEmployee">Save Employee</button><button type="button" class="secondary-btn" id="btnClearIdentityEmployee">Clear</button>
+        </form>
+        <div id="employeeAttendancePanel" style="display:none;margin-top:12px;">
+          <label for="attendanceDate">Attendance Date</label><input id="attendanceDate" type="date">
+          <div id="attendanceDateStatus" style="font-size:.8rem;color:#555;margin:4px 0 8px;"></div>
+          <div id="employeeAttendanceEditor" class="scrollable"></div>
+          <button type="button" id="btnSaveAttendance" class="success-btn">Save Attendance</button>
+        </div>
+        <div id="employeeAttendanceViewPanel" style="display:none;margin-top:12px;">
+          <label for="attendanceViewMonth">Month</label><input id="attendanceViewMonth" type="month">
+          <div id="employeeAttendanceView" class="scrollable" style="max-height:480px;margin-top:8px;"></div>
+        </div>
+        <div id="identityEmployeeList" class="scrollable" style="max-height:300px;margin-top:12px;"></div>
+        <div id="employeeAttendanceHistory" style="margin-top:8px;"></div>
+      </div>
     </section>
 
     <section id="label" class="tab-content label-tab" aria-label="Label">
@@ -886,6 +966,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
                         <option value="sales_perf">SALES PERFORMANCE (Daily Product Price & Qty)</option>
                         <option value="overall_custom">OVERALL REPORT (Full Combined Register)</option>
                         <option value="stock">Current Stock Valuation (Item-Wise)</option>
+                        <option value="customer_report">Customer Report</option>
+                        <option value="expense_report">Expense Report</option>
                     </select>
                 </div>
                 <div>
@@ -914,6 +996,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
                 </div>
             </div>
 
+            <div id="customerReportModeBox" style="display:none;margin:8px 0;gap:14px;align-items:center;"><strong>Customer Report View:</strong><label style="display:inline-flex;align-items:center;gap:5px;font-weight:500;"><input type="radio" name="customerReportMode" value="item" checked style="width:auto;margin:0;"> Item-wise</label><label style="display:inline-flex;align-items:center;gap:5px;font-weight:500;"><input type="radio" name="customerReportMode" value="date" style="width:auto;margin:0;"> Date-wise</label><label style="display:inline-flex;align-items:center;gap:5px;font-weight:500;"><input type="radio" name="customerReportMode" value="customer" style="width:auto;margin:0;"> Customer-wise</label></div>
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
                 <button id="btnGenerateReport">Generate Report</button>
                 <button id="btnExportReportExcel" class="success-btn">Download Excel (.xlsx)</button>
@@ -951,7 +1034,10 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
 <script>
 (() => {
-  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [], customers = [];
+  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [], customers = [], sellers = [], employees = [];
+  let invoiceSequence = 0, customerSequence = 0;
+  let refBillSuggestions = [], sellerSuggestions = [];
+  let editingIdentitySellerId = null, editingIdentityCustomerId = null, editingEmployeeId = null;
   const LOGIN_PASSWORD = "Kdha@321";
 
   const tabs = document.querySelectorAll('nav.tabs button');
@@ -1267,6 +1353,53 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     }
   }
 
+  function ensureCustomerIds() {
+    let maxId = customers.reduce((m,c) => Math.max(m, Number(String(c.customerId || '').replace(/\D/g,'')) || 0), Number(customerSequence) || 0);
+    customers.forEach(c => { if (!c.customerId) c.customerId = 'CUS-' + String(++maxId).padStart(4,'0'); });
+    customerSequence = Math.max(Number(customerSequence) || 0, maxId);
+  }
+  function nextCustomerId() {
+    ensureCustomerIds();
+    customerSequence += 1;
+    return 'CUS-' + String(customerSequence).padStart(4,'0');
+  }
+  function invoiceSequenceValue(id) {
+    const match = String(id ?? '').match(/^(?:INV[- ]?)?(\d+)$/i);
+    if (!match) return 0;
+    const value = Number(match[1]);
+    return Number.isSafeInteger(value) && value < 10000000000 ? value : 0; // Ignore legacy Date.now() invoice IDs.
+  }
+  function nextInvoiceId() {
+    const maxExisting = invoices.reduce((m,inv) => Math.max(m, invoiceSequenceValue(inv.id)), 0);
+    invoiceSequence = Math.max(invoiceSequence, Number(localStorage.getItem('invoiceSequence')) || 0, maxExisting) + 1;
+    return formatSequenceId(invoiceSequence);
+  }
+  // IDs are at least 4 digits (0001, 0045, 0789) and simply grow after that (10000, 31045).
+  function formatSequenceId(n) {
+    return String(Math.max(0, Number(n) || 0)).padStart(4,'0');
+  }
+  function purchaseSequenceValue(id) {
+    const match = String(id ?? '').match(/^PUR-(\d+)$/i);
+    if (!match) return 0;
+    const value = Number(match[1]);
+    return Number.isSafeInteger(value) && value < 10000000000 ? value : 0; // Ignore legacy Date.now() purchase IDs.
+  }
+  function nextPurchaseId() {
+    const maxExisting = purchaseHistory.reduce((m,ph) => Math.max(m, purchaseSequenceValue(ph.purchaseId)), 0);
+    return 'PUR-' + formatSequenceId(maxExisting + 1);
+  }
+  function normalizePhoneKey(value) {
+    let digits=String(value || '').replace(/\D/g,'');
+    if (digits.length===10) digits='91'+digits;
+    return digits;
+  }
+  function invoiceSortTimestamp(inv) {
+    if (inv.createdAt) { const parsed=Date.parse(inv.createdAt); if (Number.isFinite(parsed)) return parsed; }
+    const legacyId=String(inv.id ?? '');
+    if (/^\d{12,}$/.test(legacyId)) return Number(legacyId);
+    return new Date(String(inv.date || '') + 'T00:00:00').getTime() || 0;
+  }
+
   function getDatabasePayload() {
     return {
       products,
@@ -1276,20 +1409,59 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       offers,
       purchaseHistory,
       expenses,
-      customers
+      customers,
+      sellers,
+      employees,
+      invoiceSequence,
+      customerSequence,
+      refBillSuggestions,
+      sellerSuggestions
     };
   }
 
   function applyDatabasePayload(data) {
     if (!data || typeof data !== 'object') throw new Error('Invalid database returned by Google Sheets.');
     products = Array.isArray(data.products) ? data.products : [];
+    const previousInvoices = Array.isArray(invoices) ? invoices : [];
     invoices = Array.isArray(data.invoices) ? data.invoices : [];
+    {
+      const prevById = new Map(previousInvoices.map(i => [String(i.id), i]));
+      invoices.forEach(inv => {
+        const prev = prevById.get(String(inv.id));
+        if (!prev) return;
+        if (!inv.customerName && prev.customerName) inv.customerName = prev.customerName;
+        if (!inv.customerPhone && prev.customerPhone) inv.customerPhone = prev.customerPhone;
+        if (!inv.customerId && prev.customerId) inv.customerId = prev.customerId;
+      });
+    }
     sales = Array.isArray(data.sales) ? data.sales : [];
     categories = Array.isArray(data.categories) && data.categories.length ? data.categories : [...DEFAULT_CATEGORIES];
     offers = Array.isArray(data.offers) ? data.offers : [];
     purchaseHistory = Array.isArray(data.purchaseHistory) ? data.purchaseHistory : [];
     expenses = Array.isArray(data.expenses) ? data.expenses : [];
-    customers = Array.isArray(data.customers) ? data.customers : [];
+    const cloudCustomers = Array.isArray(data.customers) ? data.customers : [];
+    let cachedCustomers = [];
+    try { cachedCustomers = JSON.parse(localStorage.getItem('customers') || '[]'); } catch (_) {}
+    const mergedCustomers = new Map();
+    [...cloudCustomers, ...(Array.isArray(cachedCustomers) ? cachedCustomers : [])].forEach(c => {
+      const phoneKey = normalizePhoneKey(c.phone);
+      const nameKey = String(c.name || '').trim().toLowerCase();
+      const key = phoneKey || (nameKey ? 'NAME:' + nameKey : '');
+      if (key) mergedCustomers.set(key, {...(mergedCustomers.get(key) || {}), ...c});
+    });
+    customers = [...mergedCustomers.values()];
+    sellers = Array.isArray(data.sellers) ? data.sellers : sellers;
+    employees = Array.isArray(data.employees) ? data.employees : employees;
+    employees.forEach(e=>{if(!e.salaryType)e.salaryType='monthly';});
+    if (!Array.isArray(data.sellers)) { purchaseHistory.forEach(ph => { const name=String(ph.sellerName||'').trim(); if(name&&!sellers.some(x=>String(x.name||'').toLowerCase()===name.toLowerCase())) sellers.push({id:'SEL-'+Date.now()+'-'+sellers.length,name,contact:'',location:'',address:''}); }); }
+    if (!Array.isArray(data.refBillSuggestions)) refBillSuggestions=[...new Set(purchaseHistory.map(ph=>String(ph.refBillNo||'').trim()).filter(Boolean))];
+    if (!Array.isArray(data.sellerSuggestions)) sellerSuggestions=[...new Set(purchaseHistory.map(ph=>String(ph.sellerName||'').trim()).filter(Boolean))];
+    invoiceSequence = Math.max(Number(data.invoiceSequence) || 0, Number(localStorage.getItem('invoiceSequence')) || 0);
+    customerSequence = Math.max(Number(data.customerSequence) || 0, Number(localStorage.getItem('customerSequence')) || 0);
+    refBillSuggestions = Array.isArray(data.refBillSuggestions) ? data.refBillSuggestions : refBillSuggestions;
+    sellerSuggestions = Array.isArray(data.sellerSuggestions) ? data.sellerSuggestions : sellerSuggestions;
+    ensureCustomerIds();
+    localStorage.setItem('customers', JSON.stringify(customers));
 
     const todayStr = (new Date()).toISOString().slice(0,10);
     products.forEach(p => {
@@ -1297,10 +1469,11 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       if (!p.purchaseDate) p.purchaseDate = todayStr;
     });
     purchaseHistory.forEach((ph, idx) => {
-      if (!ph.purchaseId) ph.purchaseId = 'PUR-' + (1000 + idx + 1);
+      if (!ph.purchaseId) ph.purchaseId = nextPurchaseId();
       if (ph.id === undefined || ph.id === null || ph.id === '') ph.id = Date.now() + idx;
       ph.purchaseId = String(ph.purchaseId);
     });
+    invoices.forEach(inv => { if (!inv.customerId) { const c = customers.find(x => normalizePhoneKey(x.phone) === normalizePhoneKey(inv.customerPhone)); if (c) inv.customerId = c.customerId; } });
     recalculateInventoryFromPurchases();
   }
 
@@ -1313,6 +1486,16 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
     expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
     customers = JSON.parse(localStorage.getItem('customers') || '[]');
+    sellers = JSON.parse(localStorage.getItem('sellers') || '[]');
+    employees = JSON.parse(localStorage.getItem('employees') || '[]');
+    if (localStorage.getItem('sellers') === null) purchaseHistory.forEach(ph => { const name=String(ph.sellerName||'').trim(); if(name&&!sellers.some(x=>String(x.name||'').toLowerCase()===name.toLowerCase())) sellers.push({id:'SEL-'+Date.now()+'-'+sellers.length,name,contact:'',location:'',address:''}); });
+    invoiceSequence = Number(localStorage.getItem('invoiceSequence')) || 0;
+    customerSequence = Number(localStorage.getItem('customerSequence')) || 0;
+    refBillSuggestions = JSON.parse(localStorage.getItem('refBillSuggestions') || '[]');
+    sellerSuggestions = JSON.parse(localStorage.getItem('sellerSuggestions') || '[]');
+    if (localStorage.getItem('refBillSuggestions') === null) refBillSuggestions=[...new Set(purchaseHistory.map(ph=>String(ph.refBillNo||'').trim()).filter(Boolean))];
+    if (localStorage.getItem('sellerSuggestions') === null) sellerSuggestions=[...new Set(purchaseHistory.map(ph=>String(ph.sellerName||'').trim()).filter(Boolean))];
+    ensureCustomerIds();
 
     const todayStr = (new Date()).toISOString().slice(0,10);
     products.forEach(p => {
@@ -1320,10 +1503,11 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       if (!p.purchaseDate) p.purchaseDate = todayStr;
     });
     purchaseHistory.forEach((ph, idx) => {
-      if (!ph.purchaseId) ph.purchaseId = 'PUR-' + (1000 + idx + 1);
+      if (!ph.purchaseId) ph.purchaseId = nextPurchaseId();
       if (ph.id === undefined || ph.id === null || ph.id === '') ph.id = Date.now() + idx;
       ph.purchaseId = String(ph.purchaseId);
     });
+    invoices.forEach(inv => { if (!inv.customerId) { const c = customers.find(x => normalizePhoneKey(x.phone) === normalizePhoneKey(inv.customerPhone)); if (c) inv.customerId = c.customerId; } });
     recalculateInventoryFromPurchases();
   }
 
@@ -1336,6 +1520,12 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
     localStorage.setItem('expenses', JSON.stringify(expenses));
     localStorage.setItem('customers', JSON.stringify(customers));
+    localStorage.setItem('sellers', JSON.stringify(sellers));
+    localStorage.setItem('employees', JSON.stringify(employees));
+    localStorage.setItem('invoiceSequence', String(invoiceSequence));
+    localStorage.setItem('customerSequence', String(customerSequence));
+    localStorage.setItem('refBillSuggestions', JSON.stringify(refBillSuggestions));
+    localStorage.setItem('sellerSuggestions', JSON.stringify(sellerSuggestions));
     scheduleCloudSave();
   }
 
@@ -1513,6 +1703,12 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
     localStorage.setItem('expenses', JSON.stringify(expenses));
     localStorage.setItem('customers', JSON.stringify(customers));
+    localStorage.setItem('sellers', JSON.stringify(sellers));
+    localStorage.setItem('employees', JSON.stringify(employees));
+    localStorage.setItem('invoiceSequence', String(invoiceSequence));
+    localStorage.setItem('customerSequence', String(customerSequence));
+    localStorage.setItem('refBillSuggestions', JSON.stringify(refBillSuggestions));
+    localStorage.setItem('sellerSuggestions', JSON.stringify(sellerSuggestions));
   }
 
   function scheduleCloudSave() {
@@ -1533,6 +1729,23 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
     try {
       setCloudStatus('Saving…');
+      // Keep customers that exist in the Sheet (e.g. typed there directly) so the save never wipes them.
+      {
+        const cloudNow = await cloudRequest('get');
+        const cloudCustomers = Array.isArray(cloudNow?.data?.customers) ? cloudNow.data.customers : [];
+        let deletedKeys = [];
+        try { deletedKeys = JSON.parse(localStorage.getItem('deletedCustomerKeys') || '[]'); } catch (_) {}
+        const keyOf = c => { const p = normalizePhoneKey(c.phone); const n = String(c.name || '').trim().toLowerCase(); return p || (n ? 'NAME:' + n : ''); };
+        const have = new Set(customers.map(keyOf));
+        let added = false;
+        cloudCustomers.forEach(c => {
+          const k = keyOf(c);
+          if (!k || have.has(k) || deletedKeys.includes(k)) return;
+          customers.push({ ...c, phone: String(c.phone ?? '') });
+          have.add(k); added = true;
+        });
+        if (added) { ensureCustomerIds(); localStorage.setItem('customers', JSON.stringify(customers)); }
+      }
       const syncId = 'SYNC-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
       const payload = getDatabasePayload();
       payload.__syncId = syncId;
@@ -1628,11 +1841,12 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       case 'invoice': openNewBillingPopup(); break;
       case 'expenses': renderExpenses(); break;
       case 'offers': renderOffers(); break;
-      case 'inventorySetup': renderInventory(); break;
+      case 'inventorySetup': renderPurchaseSuggestions(); renderInventory(); break;
       case 'masterInventory': renderInventory(); break;
       case 'settings': initSettingsUI(); break;
       case 'stock': renderStock(); break;
       case 'sales': renderSalesHistory(); break;
+      case 'identity': renderIdentityTab(); break;
       case 'dataImport': break;
       case 'report': initReportTab(); break;
     }
@@ -2097,6 +2311,17 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
   const editingExistingCodeInput = document.getElementById('editingExistingCode');
   let editingPurchaseHistoryId = null; // stable purchaseId token while editing
 
+  function renderPurchaseSuggestions() {
+    const sellerList = document.getElementById('sellerNameDatalist');
+    if (sellerList) sellerList.innerHTML = [...new Set(sellerSuggestions)].map(v => `<option value="${String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">`).join('');
+  }
+  function rememberPurchaseSuggestions(ref, seller) {
+    if (ref && !refBillSuggestions.includes(ref)) refBillSuggestions.push(ref);
+    if (seller && !sellerSuggestions.includes(seller)) sellerSuggestions.push(seller);
+    renderPurchaseSuggestions();
+  }
+  renderPurchaseSuggestions();
+
   purchaseDateInput.value = (new Date()).toISOString().slice(0,10);
 
   invCategoryAdd.addEventListener('input', () => {
@@ -2482,6 +2707,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       delete btnSaveProduct.dataset.purchaseEditId;
       editingExistingCodeInput.value = '';
       recalculateInventoryFromPurchases();
+      rememberPurchaseSuggestions(refBillNo, sellerName);
+      if (sellerName && !sellers.some(x => String(x.name || '').trim().toLowerCase() === sellerName.toLowerCase())) sellers.push({ id: 'SEL-' + Date.now(), name: sellerName, contact: '', location: '', address: '' });
       saveLocal();
       renderInventory();
       renderStock();
@@ -2539,7 +2766,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       generateBarcode(code);
 
       // Auto-generated Purchase ID
-      const newPurchaseId = 'PUR-' + Date.now();
+      const newPurchaseId = nextPurchaseId();
 
       purchaseHistory.push({
         id: Date.now(),
@@ -2588,6 +2815,11 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       }
     }
 
+    rememberPurchaseSuggestions(refBillNo, sellerName);
+    if (sellerName) {
+      let sellerRecord = sellers.find(x => String(x.name || '').trim().toLowerCase() === sellerName.toLowerCase());
+      if (!sellerRecord) sellers.push({ id: 'SEL-' + Date.now(), name: sellerName, contact: '', location: '', address: '' });
+    }
     saveLocal(); 
     renderInventory();
     renderStock();
@@ -2740,13 +2972,10 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     let html = '';
     let serial = 1;
 
-    const filtered = purchaseHistory.filter(ph => 
-      ph.name.toLowerCase().includes(filterLower) ||
-      ph.code.toLowerCase().includes(filterLower) ||
-      ph.category.toLowerCase().includes(filterLower) ||
-      (ph.sellerName && ph.sellerName.toLowerCase().includes(filterLower)) ||
-      (ph.purchaseId && ph.purchaseId.toLowerCase().includes(filterLower))
-    ).sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+    const filtered = purchaseHistory.filter(ph => {
+      const fields = [ph.name, ph.code, ph.category, ph.itemType, ph.sellerName, ph.refBillNo, ph.purchaseId, ph.purchaseDate];
+      return !filterLower || fields.some(value => String(value ?? '').toLowerCase().includes(filterLower));
+    }).sort((a,b) => new Date(b.purchaseDate || 0) - new Date(a.purchaseDate || 0));
 
     filtered.forEach(ph => {
       const rowTotalCP = ph.cp * ph.qty;
@@ -2832,9 +3061,9 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
   };
 
   btnDownloadStock.addEventListener('click', () => {
-    const headers = [["Sr", "Purchase ID", "Purchase Date", "Code", "Name", "Category", "Item Type", "Seller", "Ref Bill", "Qty Added", "Cost Price", "Selling Price", "Total Cost"]];
+    const headers = [["Sr", "Purchase ID", "Purchase Date", "Code", "Name", "Category", "Item Type", "Seller", "Ref Bill", "Qty Added", "Cost Price", "MRP", "Selling Price", "Total Cost"]];
     const data = purchaseHistory.map((ph, i)=>[
-      i+1, ph.purchaseId || ('PUR-' + ph.id), ph.purchaseDate || '', ph.code, ph.name, ph.category, ph.itemType || 'Common', ph.sellerName || '', ph.refBillNo || '', ph.qty, ph.cp, ph.sp, (ph.cp * ph.qty).toFixed(2)
+      i+1, ph.purchaseId || ('PUR-' + ph.id), ph.purchaseDate || '', ph.code, ph.name, ph.category, ph.itemType || 'Common', ph.sellerName || '', ph.refBillNo || '', ph.qty, ph.cp, ph.mrp ?? ph.sp, ph.sp, (ph.cp * ph.qty).toFixed(2)
     ]);
     const ws = XLSX.utils.aoa_to_sheet(headers.concat(data));
     const wb = XLSX.utils.book_new();
@@ -2848,11 +3077,41 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
   function openNewBillingPopup(invoiceToEdit = null){
     const today = (new Date()).toISOString().slice(0,10);
+    const newSaleDefaultDate = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
     const todayInvoices = invoices.filter(inv => inv.date === today);
     const totalSold = todayInvoices.reduce((acc,i)=> acc + calculateInvoiceTotal(i), 0);
     soldTodayTotalSpan.textContent = totalSold.toFixed(2);
 
     let invoiceItems = [];
+
+    // Invoice lines are identified by Item Code, never by product name.
+    // This keeps same-name products from different batches/prices separate,
+    // while consolidating repeated entries for the exact same code.
+    function normalizeInvoiceItemCode(value) {
+      return String(value ?? '').trim();
+    }
+
+    function consolidateInvoiceItemsByCode(items) {
+      const consolidated = [];
+      const itemIndexByCode = new Map();
+      (Array.isArray(items) ? items : []).forEach(item => {
+        const code = normalizeInvoiceItemCode(item.code);
+        // Missing codes are not safe grouping keys; preserve those rows separately.
+        if (!code) {
+          consolidated.push({ ...item });
+          return;
+        }
+        if (itemIndexByCode.has(code)) {
+          const existing = consolidated[itemIndexByCode.get(code)];
+          existing.qty = (Number(existing.qty) || 0) + (Number(item.qty) || 0);
+        } else {
+          itemIndexByCode.set(code, consolidated.length);
+          consolidated.push({ ...item });
+        }
+      });
+      return consolidated;
+    }
+
     let discountAmount = 0;
     let cashPay = 0;
     let onlinePay = 0;
@@ -2878,26 +3137,26 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
             if (product) product.qty += item.qty;
         });
         
-        invoiceItems = JSON.parse(JSON.stringify(invoiceToEdit.items));
+        invoiceItems = consolidateInvoiceItemsByCode(JSON.parse(JSON.stringify(invoiceToEdit.items || [])));
         const subTotal = invoiceItems.reduce((a,i)=>a+i.sp*i.qty,0);
         const netTotal = calculateInvoiceTotal(invoiceToEdit);
         discountAmount = subTotal - netTotal;
         const legacyOnline = invoiceToEdit.paymentMethod === 'Online' || invoiceToEdit.paymentMethod === 'Online / UPI';
         cashPay = invoiceToEdit.cashAmount !== undefined ? Number(invoiceToEdit.cashAmount) : (legacyOnline ? 0 : netTotal);
         onlinePay = invoiceToEdit.onlineAmount !== undefined ? Number(invoiceToEdit.onlineAmount) : (legacyOnline ? netTotal : 0);
-    }    const billingDateValue = invoiceToEdit?.date || today;
+    }    const billingDateValue = invoiceToEdit?.date || newSaleDefaultDate;
 
     let html = `<h3 style="margin-top:0; font-size: 0.95rem;">${invoiceToEdit ? 'Edit Invoice ID: ' + invoiceToEdit.id : 'Create New Invoice'}</h3>
 
       <div style="display:flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
         <div style="flex:1; min-width:150px;">
             <label for="billingCustomerName">Customer Name</label>
-            <input type="text" id="billingCustomerName" value="${invoiceToEdit?.customerName || ''}" placeholder="Enter customer name" autocomplete="off" list="customerNameDatalist" />
+            <input type="text" id="billingCustomerName" value="${invoiceToEdit?.customerName ?? ''}" placeholder="Enter customer name" autocomplete="off" list="customerNameDatalist" />
             <datalist id="customerNameDatalist"></datalist>
         </div>
         <div style="flex:1; min-width:150px;">
             <label for="billingCustomerPhone">WhatsApp Number</label>
-            <input type="tel" id="billingCustomerPhone" value="${invoiceToEdit?.customerPhone || ''}" placeholder="10-digit number" inputmode="tel" autocomplete="off" list="customerPhoneDatalist" />
+            <input type="tel" id="billingCustomerPhone" value="${invoiceToEdit?.customerPhone ?? ''}" placeholder="10-digit number" inputmode="tel" autocomplete="off" list="customerPhoneDatalist" />
             <datalist id="customerPhoneDatalist"></datalist>
         </div>
         <div style="flex:1; min-width:130px;">
@@ -2990,8 +3249,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       (Array.isArray(customers) ? customers : []).forEach(c => {
         const name = String(c.name || '').trim();
         const phone = normalizedCustomerPhone(c.phone);
-        if (!phone) return;
-        unique.set(phone, {name, phone});
+        if (!phone && !name) return;
+        unique.set(phone || ('NAME:' + name.toLowerCase()), {name, phone, customerId:c.customerId || ''});
       });
       customerNameDatalist.innerHTML = '';
       customerPhoneDatalist.innerHTML = '';
@@ -2999,27 +3258,49 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
         if (c.name) {
           const n = document.createElement('option');
           n.value = c.name;
-          n.label = c.phone;
+          n.label = [c.customerId, c.phone].filter(Boolean).join(' | ');
           customerNameDatalist.appendChild(n);
         }
-        const p = document.createElement('option');
-        p.value = c.phone.length === 12 && c.phone.startsWith('91') ? c.phone.slice(2) : c.phone;
-        p.label = c.name || 'Saved customer';
-        customerPhoneDatalist.appendChild(p);
+        if (c.phone) {
+          const p = document.createElement('option');
+          p.value = c.phone.length === 12 && c.phone.startsWith('91') ? c.phone.slice(2) : c.phone;
+          p.label = [c.customerId, c.name || 'Saved customer'].filter(Boolean).join(' | ');
+          customerPhoneDatalist.appendChild(p);
+        }
       });
+    }
+
+    function renderBillingSavedCustomerList() {
+      const host = document.getElementById('billingSavedCustomerList');
+      if (!host) return;
+      host.innerHTML = customers.map(c => `<span style="display:inline-flex;align-items:center;gap:4px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:14px;padding:3px 7px;font-size:11px;">${String(c.customerId || '')} ${String(c.name || '')} (${String(c.phone || '')}) <button type="button" data-remove-customer="${String(c.customerId || '')}" title="Delete customer suggestion" style="padding:0 4px;margin:0;background:#dc3545;line-height:16px;">×</button></span>`).join('');
+      host.querySelectorAll('[data-remove-customer]').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.dataset.removeCustomer;
+        const customer = customers.find(c => String(c.customerId) === String(id));
+        if (!customer || !confirm(`Delete saved customer ${customer.name || id}? Past invoices will remain unchanged.`)) return;
+        try { const dk = JSON.parse(localStorage.getItem('deletedCustomerKeys') || '[]'); const k = normalizePhoneKey(customer.phone) || (String(customer.name || '').trim() ? 'NAME:' + String(customer.name).trim().toLowerCase() : ''); if (k && !dk.includes(k)) { dk.push(k); localStorage.setItem('deletedCustomerKeys', JSON.stringify(dk)); } } catch (_) {}
+        customers = customers.filter(c => String(c.customerId) !== String(id));
+        saveLocal(); renderCustomerSuggestions(); renderBillingSavedCustomerList();
+      }));
     }
 
     function rememberCustomer(name, rawPhone) {
       const phone = normalizedCustomerPhone(rawPhone);
       const cleanName = String(name || '').trim();
-      if (!phone) return;
-      const existing = customers.find(c => normalizedCustomerPhone(c.phone) === phone);
+      if (cleanName) localStorage.setItem('lastBillingCustomerName', cleanName);
+      if (rawPhone) localStorage.setItem('lastBillingCustomerPhone', String(rawPhone).trim());
+      if (!phone && !cleanName) return;
+      const existing = (phone ? customers.find(c => normalizedCustomerPhone(c.phone) === phone) : null) || customers.find(c => cleanName && String(c.name || '').trim().toLowerCase() === cleanName.toLowerCase() && (!phone || !c.phone));
       if (existing) {
         if (cleanName) existing.name = cleanName;
+        if (phone) existing.phone = phone;
+        if (!existing.customerId) existing.customerId = nextCustomerId();
       } else {
-        customers.push({ name: cleanName, phone });
+        customers.push({ customerId: nextCustomerId(), name: cleanName, phone });
       }
+      saveLocal();
       renderCustomerSuggestions();
+      renderBillingSavedCustomerList();
     }
 
     function findCustomerByPhone(rawPhone) {
@@ -3056,11 +3337,15 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       }
     });
     renderCustomerSuggestions();
+    renderBillingSavedCustomerList();
 
     function buildCurrentInvoice() {
       const selectedSaleDate = billingDateInput.value;
       if (!selectedSaleDate) { alert('Please select the sale date.'); billingDateInput.focus(); return null; }
-      const items = invoiceItems.filter(it => Number(it.qty) > 0);
+      // Consolidate by exact Item Code at save time as a final safeguard.
+      // Different codes remain separate even when their product names are identical.
+      const items = consolidateInvoiceItemsByCode(invoiceItems)
+        .filter(it => Number(it.qty) > 0);
       if (!items.length) { alert('Please add at least one item.'); return null; }
 
       const subTotal = items.reduce((a,i)=>a+Number(i.sp || 0)*Number(i.qty || 0),0);
@@ -3069,7 +3354,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       const manualDiscount = calculateManualDiscount(subTotalAfterOffer);
       const overallDiscount = offerDiscount + manualDiscount;
       const itemsWithDiscount = items.map((it, index) => ({
-        code: it.code, name: it.name, sp: it.sp, cp: it.cp || 0, qty: it.qty,
+        code: it.code, name: it.name, mrp: it.mrp || products.find(p => String(p.code) === String(it.code))?.mrp || it.sp, sp: it.sp, cp: it.cp || 0, qty: it.qty,
         discount: index === 0 ? overallDiscount : 0
       }));
       const netTotal = Math.round(subTotal - overallDiscount);
@@ -3085,7 +3370,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       rememberCustomer(customerName, customerPhone);
       const selectedSaleDateFinal = selectedSaleDate || today;
       const oldInvoice = window.editTargetInvoice;
-      const preservedInvoiceId = oldInvoice ? oldInvoice.id : Date.now();
+      const preservedInvoiceId = oldInvoice ? oldInvoice.id : nextInvoiceId();
       if (oldInvoice) {
         const oldNetTotal = calculateInvoiceTotal(oldInvoice);
         invoices = invoices.filter(inv => String(inv.id) !== String(preservedInvoiceId));
@@ -3095,8 +3380,9 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
           if (oldSaleEntry.amount <= 0) sales = sales.filter(s => s.date !== oldInvoice.date);
         }
       }
+      const matchedCustomer = findCustomerByPhone(customerPhone) || customers.find(c => String(c.name || '').trim().toLowerCase() === customerName.toLowerCase());
       const newInvoice = {
-        id: preservedInvoiceId, date: selectedSaleDateFinal, customerName, customerPhone,
+        id: preservedInvoiceId, createdAt: oldInvoice?.createdAt || new Date().toISOString(), date: selectedSaleDateFinal, customerId: matchedCustomer?.customerId || '', customerName, customerPhone,
         status: 'paid', paymentMethod: pMode, cashAmount: cashAmt, onlineAmount: onlineAmt,
         total: netTotal, items: itemsWithDiscount
       };
@@ -3232,12 +3518,15 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
             .filter(p => p.qty > 0 || invoiceItems.some(it => String(it.code) === String(p.code) && it.qty > 0))
             .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true, sensitivity: 'base' }));
 
-        // Show Product Name first, with Item Code as the secondary information.
-        // Direct Item Code entry is still supported by addItemToInvoiceByCode().
+        // Each suggestion must have a unique selectable value. Using the product
+        // name as the value caused same-name products with different item codes
+        // to resolve to the same stock record. The code is now the value, while
+        // the label displays the product name and useful identifying details.
         productDatalist.innerHTML = inStockProducts.map(p => {
             const safeName = String(p.name || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const safeCode = String(p.code || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return `<option value="${safeName}" label="Code: ${safeCode} | MRP: ₹${Number(p.mrp ?? p.sp ?? 0)} | ${p.category || ''} | Qty: ${p.qty}">`;
+            const safeCategory = String(p.category || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `<option value="${safeName} — CODE: ${safeCode}" label="MRP: ₹${Number(p.mrp ?? p.sp ?? 0)} | ${safeCategory} | Qty: ${p.qty}">`;
         }).join('');
     }
     
@@ -3293,7 +3582,12 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
     function addItemToInvoiceByCode(code) {
         const searchValue = String(code || '').trim();
-        const exactCodeProduct = products.find(p => String(p.code ?? '').trim() === searchValue);
+        // A datalist selection is "Product Name — CODE: itemCode" so typing
+        // names still filters naturally while the selected suggestion resolves
+        // to its exact unique inventory code.
+        const suggestionCodeMatch = searchValue.match(/\s—\sCODE:\s*(.+)$/i);
+        const requestedCode = suggestionCodeMatch ? suggestionCodeMatch[1].trim() : searchValue;
+        const exactCodeProduct = products.find(p => String(p.code ?? '').trim() === requestedCode);
         const normalizedName = searchValue.toLowerCase();
         const nameMatches = products
             .filter(p => String(p.name || '').trim().toLowerCase() === normalizedName)
@@ -3310,7 +3604,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
             return;
         }
 
-        let itemInInvoice = invoiceItems.find(it => String(it.code) === String(product.code));
+        const selectedItemCode = normalizeInvoiceItemCode(product.code);
+        let itemInInvoice = invoiceItems.find(it => normalizeInvoiceItemCode(it.code) === selectedItemCode);
         const maxQty = product.qty; 
         
         if (itemInInvoice) {
@@ -3744,7 +4039,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     const dateFilter = salesDateSearch.value;
     const searchFilter = salesInvoiceSearch.value.toLowerCase();
     
-    let filteredInvoices = invoices.sort((a,b) => Number(b.id) - Number(a.id));
+    let filteredInvoices = invoices.slice().sort((a,b) => invoiceSortTimestamp(b) - invoiceSortTimestamp(a));
 
     if (dateFilter) filteredInvoices = filteredInvoices.filter(inv => inv.date === dateFilter);
 
@@ -3769,11 +4064,13 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       const oPay = inv.onlineAmount !== undefined ? Number(inv.onlineAmount) : (legacyOnline ? total : 0);
       const customerName = String(inv.customerName || '');
       const customerPhone = String(inv.customerPhone || '');
+      const customerId = String(inv.customerId || customers.find(c=>normalizePhoneKey(c.phone)===normalizePhoneKey(customerPhone))?.customerId || '');
 
       const weekendClass = getWeekendRowClass(inv.date);
       return `<tr class="${weekendClass}">
         <td>${inv.date}</td>
         <td>${inv.id}</td>
+        <td>${customerId || '-'}</td>
         <td>${customerName || '-'}</td>
         <td>${customerPhone || '-'}</td>
         <td class="num-align">₹${Math.round(cPay)}</td>
@@ -3789,8 +4086,37 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       </tr>`;
     }).join('');
     
-    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="10" style="text-align:center;">No sales records found.</td></tr>';
+    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="11" style="text-align:center;">No sales records found.</td></tr>';
+
+    // Overall totals cover ALL invoices (not affected by the date / search filters).
+    let allCash = 0, allOnline = 0, allTotal = 0, allProfit = 0;
+    invoices.forEach(inv => {
+      const total = calculateInvoiceTotal(inv);
+      const legacyOnline = inv.paymentMethod === 'Online' || inv.paymentMethod === 'Online / UPI';
+      allCash += inv.cashAmount !== undefined ? (Number(inv.cashAmount) || 0) : (legacyOnline ? 0 : total);
+      allOnline += inv.onlineAmount !== undefined ? (Number(inv.onlineAmount) || 0) : (legacyOnline ? total : 0);
+      allTotal += total;
+      allProfit += calculateInvoiceProfit(inv);
+    });
+    const setTotal = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = formatINR(value); };
+    setTotal('salesTotalCash', allCash);
+    setTotal('salesTotalOnline', allOnline);
+    setTotal('salesTotalAmount', allTotal);
+    setTotal('salesTotalProfit', allProfit);
+    const profitCell = document.getElementById('salesTotalProfit');
+    if (profitCell) profitCell.style.color = allProfit >= 0 ? 'green' : 'red';
   }
+
+  document.getElementById('btnExportSalesHistory')?.addEventListener('click', () => {
+    const headers = ['Invoice ID','Date','Customer ID','Customer Name','Customer Number','Payment Method','Cash Amount','Online / UPI Amount','Invoice Total','Invoice Profit','Item Code','Item Name','Qty','MRP','Rate / SP','Cost Price','Item Discount','Line Total'];
+    const rows = [];
+    invoices.slice().sort((a,b) => String(a.date).localeCompare(String(b.date)) || Number(a.id)-Number(b.id)).forEach(inv => {
+      const customer = customers.find(c => String(c.customerId) === String(inv.customerId)) || customers.find(c => normalizePhoneKey(c.phone) === normalizePhoneKey(inv.customerPhone));
+      const total = calculateInvoiceTotal(inv), profit = calculateInvoiceProfit(inv);
+      (inv.items || []).forEach(it => rows.push([inv.id,inv.date,inv.customerId || customer?.customerId || '',inv.customerName || customer?.name || '',inv.customerPhone || customer?.phone || '',inv.paymentMethod || '',Number(inv.cashAmount)||0,Number(inv.onlineAmount)||0,total,profit,it.code,it.name,it.qty,it.mrp ?? it.sp,it.sp,it.cp,it.discount || 0,(Number(it.sp)||0)*(Number(it.qty)||0)-(Number(it.discount)||0)]));
+    });
+    const ws = XLSX.utils.aoa_to_sheet([headers,...rows]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Sales History'); XLSX.writeFile(wb,'Gensworld_Sales_History.xlsx');
+  });
 
   /* COMBINED SALES + PURCHASE + EXPENSE IMPORT */
   const importCombinedFile = document.getElementById('importCombinedFile');
@@ -3968,7 +4294,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     const idBase = Date.now() + rowIndex * 1000 + purchaseHistory.length;
     purchaseHistory.push({
       id: idBase,
-      purchaseId: 'PUR-IMP-' + idBase,
+      purchaseId: nextPurchaseId(),
       purchaseDate: date,
       code: prod.code,
       name: prod.name,
@@ -4106,7 +4432,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
         purchaseHistory.push({
           id: Date.now() + rowIndex * 1000 + purchaseHistory.length,
-          purchaseId: id || ('PUR-IMP-' + Date.now() + '-' + (rowIndex + 1)),
+          purchaseId: id || nextPurchaseId(),
           purchaseDate: date,
           code: product.code,
           name: product.name,
@@ -4132,6 +4458,9 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
         salesById[invoiceKey] = {
           id: id || invoiceKey,
           date,
+          customerId: String(importValue(rawRow, 'Customer ID') || ''),
+          customerName: String(importValue(rawRow, 'Customer Name') || '').trim(),
+          customerPhone: String(importValue(rawRow, 'Customer Number') || importValue(rawRow, 'Customer Phone') || '').trim(),
           status: 'paid',
           paymentMethod: upi > 0 && cash === 0 ? 'Online / UPI' :
                           (cash > 0 && upi > 0 ? 'Split (Cash+Online)' : 'Cash'),
@@ -4263,6 +4592,124 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     XLSX.writeFile(wb, 'GensWorld_Sales_Purchase_Expense_Upload_Template.xlsx');
   });
 
+  // Blank import templates use exactly the same column headings as their corresponding exports.
+  document.getElementById('btnDownloadSalesTemplate')?.addEventListener('click',()=>{
+    const headers=['Invoice ID','Date','Customer ID','Customer Name','Customer Number','Payment Method','Cash Amount','Online / UPI Amount','Invoice Total','Invoice Profit','Item Code','Item Name','Qty','MRP','Rate / SP','Cost Price','Item Discount','Line Total'];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers]),'Sales History');XLSX.writeFile(wb,'Gensworld_Sales_Import_Template.xlsx');
+  });
+  document.getElementById('btnDownloadPurchaseTemplate')?.addEventListener('click',()=>{
+    const headers=['Sr','Purchase ID','Purchase Date','Code','Name','Category','Item Type','Seller','Ref Bill','Qty Added','Cost Price','MRP','Selling Price','Total Cost'];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers]),'Purchase History');XLSX.writeFile(wb,'Gensworld_Purchase_Import_Template.xlsx');
+  });
+  // Separate export-compatible Sales and Purchase imports.
+  function readImportRows(file, callback) {
+    if (!file) return alert('Please select an Excel / CSV file first.');
+    const reader=new FileReader(); reader.onload=e=>{ try { const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false}); const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}); if(!rows.length) throw new Error('No rows found.'); callback(rows); } catch(err){ alert('Import failed: '+err.message); } }; reader.readAsArrayBuffer(file);
+  }
+  document.getElementById('btnImportSales')?.addEventListener('click',()=>readImportRows(document.getElementById('salesImportFile').files[0],rows=>{
+    let count=0; const groups=new Map();
+    rows.forEach((r,i)=>{ const id=String(importValue(r,'Invoice ID')||importValue(r,'ID')||'').trim(); if(!id) return; if(!groups.has(id)) groups.set(id,{id,date:importDate(importValue(r,'Date')),customerId:String(importValue(r,'Customer ID')||''),customerName:String(importValue(r,'Customer Name')||''),customerPhone:String(importValue(r,'Customer Number')||''),paymentMethod:String(importValue(r,'Payment Method')||'Cash'),cashAmount:importNum(importValue(r,'Cash Amount')),onlineAmount:importNum(importValue(r,'Online / UPI Amount')),total:importNum(importValue(r,'Invoice Total')),items:[]}); const inv=groups.get(id); const code=String(importValue(r,'Item Code')||importValue(r,'Code')||'').trim(); const name=String(importValue(r,'Item Name')||importValue(r,'Name')||'').trim(); if(!code&&!name) return; inv.items.push({code,name,qty:importQty(importValue(r,'Qty')),mrp:importNum(importValue(r,'MRP')),sp:importNum(importValue(r,'Rate / SP')||importValue(r,'Selling Price')),cp:importNum(importValue(r,'Cost Price')),discount:importNum(importValue(r,'Item Discount'))}); });
+    groups.forEach(inv=>{ if(!inv.items.length) return; const idx=invoices.findIndex(x=>String(x.id)===String(inv.id)); if(idx>=0) invoices[idx]=inv; else invoices.push(inv); count++; invoiceSequence=Math.max(invoiceSequence,invoiceSequenceValue(inv.id)); if(inv.customerPhone||inv.customerName){ const found=customers.find(c=>normalizePhoneKey(c.phone)===normalizePhoneKey(inv.customerPhone)); if(found){found.name=inv.customerName||found.name;} else customers.push({customerId:inv.customerId||nextCustomerId(),name:inv.customerName,phone:inv.customerPhone}); }});
+    sales=[]; const dayMap={}; invoices.forEach(inv=>dayMap[inv.date]=(dayMap[inv.date]||0)+calculateInvoiceTotal(inv)); Object.entries(dayMap).forEach(([date,amount])=>sales.push({date,amount})); recalculateInventoryFromPurchases(); saveLocal(); renderSalesHistory(); renderDashboard(); alert(`Imported / updated ${count} invoice(s).`); document.getElementById('salesImportFile').value='';
+  }));
+  document.getElementById('btnImportPurchases')?.addEventListener('click',()=>readImportRows(document.getElementById('purchaseImportFile').files[0],rows=>{
+    let count=0; rows.forEach((r,i)=>{ const id=String(importValue(r,'Purchase ID')||'').trim(); let code=String(importValue(r,'Code')||'').trim(); const name=String(importValue(r,'Name')||'').trim(); const qty=importQty(importValue(r,'Qty Added')||importValue(r,'Qty')); if(!name||qty<=0) return; if(!code){ const _cp=importNum(importValue(r,'Cost Price')), _sp=importNum(importValue(r,'Selling Price')), _mrp=importNum(importValue(r,'MRP')||importValue(r,'Selling Price')); const _same=[...products,...purchaseHistory].find(x=>String(x.code||'')&&sameProductIdentity(x,{name,cp:_cp,mrp:_mrp,sp:_sp})); code=_same?String(_same.code):generateUniqueCode(_cp,name); } const entry={id:Date.now()+i,purchaseId:id||nextPurchaseId(),purchaseDate:importDate(importValue(r,'Purchase Date')||importValue(r,'Date')),code,name,category:String(importValue(r,'Category')||'Uncategorized'),itemType:String(importValue(r,'Item Type')||'Common'),sellerName:String(importValue(r,'Seller')||''),refBillNo:String(importValue(r,'Ref Bill')||''),qty,cp:importNum(importValue(r,'Cost Price')),mrp:importNum(importValue(r,'MRP')||importValue(r,'Selling Price')),sp:importNum(importValue(r,'Selling Price')),}; const idx=purchaseHistory.findIndex(x=>String(x.purchaseId||'')===String(entry.purchaseId)); if(idx>=0) purchaseHistory[idx]=entry; else purchaseHistory.push(entry); count++; if(entry.sellerName&&!sellerSuggestions.includes(entry.sellerName))sellerSuggestions.push(entry.sellerName); if(entry.refBillNo&&!refBillSuggestions.includes(entry.refBillNo))refBillSuggestions.push(entry.refBillNo); }); recalculateInventoryFromPurchases(); saveLocal(); renderStock(); renderInventory(); renderPurchaseSuggestions(); alert(`Imported / updated ${count} purchase record(s).`); document.getElementById('purchaseImportFile').value='';
+  }));
+
+  // Identity directory: one identity view at a time; attendance is saved through the common cloud sync.
+  const identityViewRadios = document.querySelectorAll('input[name="identityView"]');
+  function setIdentityView(view) {
+    ['seller','customer','employee'].forEach(kind => {
+      const panel=document.getElementById('identity'+kind[0].toUpperCase()+kind.slice(1)+'Panel');
+      if(panel) panel.style.display = kind===view ? 'block' : 'none';
+    });
+  }
+  identityViewRadios.forEach(r=>r.addEventListener('change',()=>{if(r.checked)setIdentityView(r.value);}));
+  setIdentityView('seller');
+
+  var identitySortState={seller:'none',customer:'none'}; // none = normal order, desc = high to low, asc = low to high
+  function identitySortArrow(m){return m==='desc'?'▼':m==='asc'?'▲':'⇅';}
+  function customerInvoices(c){
+    const id=String(c?.customerId||''), phone=normalizePhoneKey(c?.phone);
+    return invoices.filter(inv=>(id&&String(inv.customerId||'')===id)||(phone&&normalizePhoneKey(inv.customerPhone)===phone));
+  }
+  function renderIdentityTab() {
+    const sellerHost=document.getElementById('identitySellerList'), customerHost=document.getElementById('identityCustomerList'), employeeHost=document.getElementById('identityEmployeeList');
+    var sellerRows=sellers.map(x=>{const logs=purchaseHistory.filter(ph=>String(ph.sellerName||'').trim().toLowerCase()===String(x.name||'').trim().toLowerCase());return {x,count:logs.length,qty:logs.reduce((a,ph)=>a+(Number(ph.qty)||0),0),amount:logs.reduce((a,ph)=>a+(Number(ph.cp)||0)*(Number(ph.qty)||0),0)};});
+    if(identitySortState.seller==='desc') sellerRows.sort((a,b)=>b.amount-a.amount); else if(identitySortState.seller==='asc') sellerRows.sort((a,b)=>a.amount-b.amount);
+    if(sellerHost) sellerHost.innerHTML='<table><thead><tr><th>Seller ID</th><th>Seller</th><th class="num-align">Contact</th><th>Location</th><th>Address</th><th class="num-align">Total Qty Purchased</th><th class="num-align">Total Purchase Amount <button type="button" data-identity-sort="seller" title="Sort" style="margin:0;padding:0 5px;">'+identitySortArrow(identitySortState.seller)+'</button></th><th>History</th><th>Action</th></tr></thead><tbody>'+sellerRows.map(r=>{const x=r.x;return `<tr><td>${x.id||''}</td><td>${x.name||''}</td><td class="num-align">${x.contact||''}</td><td>${x.location||''}</td><td>${x.address||''}</td><td class="num-align">${r.qty}</td><td class="num-align">${formatINR(r.amount)}</td><td><button type="button" data-seller-history="${x.id}">View</button></td><td><button type="button" data-seller-edit="${x.id}">Edit</button> <button type="button" class="danger-btn" data-seller-delete="${x.id}">Delete</button></td></tr>`;}).join('')+'</tbody></table>';
+    var customerRows=customers.map(x=>{const mine=customerInvoices(x);return {x,count:mine.length,amount:mine.reduce((a,inv)=>a+(Number(calculateInvoiceTotal(inv))||0),0)};});
+    if(identitySortState.customer==='desc') customerRows.sort((a,b)=>b.amount-a.amount); else if(identitySortState.customer==='asc') customerRows.sort((a,b)=>a.amount-b.amount);
+    if(customerHost) customerHost.innerHTML='<table><thead><tr><th>ID</th><th>Name</th><th class="num-align">Contact</th><th>Location</th><th>Address</th><th class="num-align">Total Amount Purchased <button type="button" data-identity-sort="customer" title="Sort" style="margin:0;padding:0 5px;">'+identitySortArrow(identitySortState.customer)+'</button></th><th>History</th><th>Action</th></tr></thead><tbody>'+customerRows.map(r=>{const x=r.x;return `<tr><td>${x.customerId||''}</td><td>${x.name||''}</td><td class="num-align">${x.phone||''}</td><td>${x.location||''}</td><td>${x.address||''}</td><td class="num-align">${formatINR(r.amount)}</td><td><button type="button" data-customer-history="${x.customerId}">View</button></td><td><button type="button" data-customer-edit="${x.customerId}">Edit</button> <button type="button" class="danger-btn" data-customer-delete="${x.customerId}">Delete</button></td></tr>`;}).join('')+'</tbody></table>';
+    document.querySelectorAll('[data-identity-sort]').forEach(b=>b.onclick=()=>{const k=b.dataset.identitySort;identitySortState[k]=identitySortState[k]==='none'?'desc':identitySortState[k]==='desc'?'asc':'none';renderIdentityTab();});
+    sellerHost?.querySelectorAll('[data-seller-delete]').forEach(b=>b.onclick=()=>{const x=sellers.find(y=>String(y.id)===b.dataset.sellerDelete);if(!x)return;const n=purchaseHistory.filter(ph=>String(ph.sellerName||'').trim().toLowerCase()===String(x.name||'').trim().toLowerCase()).length;if(n>0)return alert(`Cannot delete seller "${x.name}": ${n} purchase record(s) exist for this seller.`);if(!confirm(`Delete seller "${x.name}"?`))return;sellers=sellers.filter(y=>y!==x);if(String(editingIdentitySellerId)===String(x.id)){editingIdentitySellerId=null;sellerIdentityForm.reset();btnSaveIdentitySeller.textContent='Save Seller';}saveLocal();renderIdentityTab();});
+    customerHost?.querySelectorAll('[data-customer-delete]').forEach(b=>b.onclick=()=>{const x=customers.find(y=>String(y.customerId)===b.dataset.customerDelete);if(!x)return;const n=customerInvoices(x).length;if(n>0)return alert(`Cannot delete customer "${x.name}": ${n} invoice(s) exist for this customer.`);if(!confirm(`Delete customer "${x.name}"?`))return;customers=customers.filter(y=>y!==x);if(String(editingIdentityCustomerId)===String(x.customerId)){editingIdentityCustomerId=null;customerIdentityForm.reset();btnSaveIdentityCustomer.textContent='Save Customer';}saveLocal();renderIdentityTab();});
+    if(employeeHost) employeeHost.innerHTML='<table><thead><tr><th>Employee ID</th><th>Employee Name</th><th class="num-align">Contact</th><th>Payment Type</th><th class="num-align">Salary (₹)</th><th>History</th><th>Action</th></tr></thead><tbody>'+employees.map(x=>`<tr><td>${x.id}</td><td>${x.name||''}</td><td class="num-align">${x.phone||''}</td><td>${x.salaryType==='daily'?'Daily':'Monthly'}</td><td class="num-align">${formatINR(x.salary||0)}</td><td><button type="button" data-employee-attendance="${x.id}">View</button></td><td><button type="button" data-employee-edit="${x.id}">Edit</button> <button type="button" data-employee-delete="${x.id}" class="danger-btn">×</button></td></tr>`).join('')+'</tbody></table>';
+    document.getElementById('identityCustomerId').value=editingIdentityCustomerId ? (customers.find(x=>String(x.customerId)===String(editingIdentityCustomerId))?.customerId||'') : '';
+    document.getElementById('identityEmployeeId').value=editingEmployeeId||'';
+    sellerHost?.querySelectorAll('[data-seller-edit]').forEach(b=>b.onclick=()=>{const x=sellers.find(y=>String(y.id)===b.dataset.sellerEdit);if(!x)return;editingIdentitySellerId=x.id;identitySellerName.value=x.name||'';identitySellerContact.value=x.contact||'';identitySellerLocation.value=x.location||'';identitySellerAddress.value=x.address||'';btnSaveIdentitySeller.textContent='Update Seller';});
+    sellerHost?.querySelectorAll('[data-seller-history]').forEach(b=>b.onclick=()=>{const x=sellers.find(y=>String(y.id)===b.dataset.sellerHistory);const logs=purchaseHistory.filter(ph=>String(ph.sellerName||'').toLowerCase()===String(x?.name||'').toLowerCase());sellerPurchaseHistory.innerHTML='<strong>Purchase history — '+(x?.name||'')+'</strong><table><thead><tr><th>Date</th><th>Purchase ID</th><th>Item</th><th>Qty</th><th>Cost Price</th><th>MRP</th><th>Selling Price</th><th>Total CP</th><th>Total MRP</th><th>Total SP</th></tr></thead><tbody>'+logs.map(ph=>`<tr><td>${ph.purchaseDate}</td><td>${ph.purchaseId}</td><td>${ph.name}</td><td>${ph.qty}</td><td>${formatINR(ph.cp)}</td><td>${formatINR(ph.mrp??ph.sp)}</td><td>${formatINR(ph.sp)}</td><td>${formatINR(ph.cp*ph.qty)}</td><td>${formatINR((ph.mrp??ph.sp)*ph.qty)}</td><td>${formatINR(ph.sp*ph.qty)}</td></tr>`).join('')+'</tbody><tfoot><tr><th colspan="3">Total</th><th>'+logs.reduce((a,p)=>a+(Number(p.qty)||0),0)+'</th><th colspan="3"></th><th>'+formatINR(logs.reduce((a,p)=>a+(Number(p.cp)||0)*(Number(p.qty)||0),0))+'</th><th>'+formatINR(logs.reduce((a,p)=>a+(Number(p.mrp??p.sp)||0)*(Number(p.qty)||0),0))+'</th><th>'+formatINR(logs.reduce((a,p)=>a+(Number(p.sp)||0)*(Number(p.qty)||0),0))+'</th></tr></tfoot></table>';});
+    customerHost?.querySelectorAll('[data-customer-edit]').forEach(b=>b.onclick=()=>{const x=customers.find(y=>String(y.customerId)===b.dataset.customerEdit);if(!x)return;editingIdentityCustomerId=x.customerId;identityCustomerId.value=x.customerId;identityCustomerName.value=x.name||'';identityCustomerPhone.value=x.phone||'';identityCustomerLocation.value=x.location||'';identityCustomerAddress.value=x.address||'';btnSaveIdentityCustomer.textContent='Update Customer';});
+    customerHost?.querySelectorAll('[data-customer-history]').forEach(b=>b.onclick=()=>{const x=customers.find(y=>String(y.customerId)===b.dataset.customerHistory);const logs=invoices.filter(inv=>String(inv.customerId||'')===String(x?.customerId)||normalizePhoneKey(inv.customerPhone)===normalizePhoneKey(x?.phone));const itemRows=logs.flatMap(inv=>(inv.items||[]).map(it=>({date:inv.date,id:inv.id,name:it.name,qty:Number(it.qty)||0,cp:Number(it.cp)||0,mrp:Number(it.mrp??it.sp)||0,sp:Number(it.sp)||0})));customerPurchaseHistory.innerHTML='<strong>Sales history — '+(x?.name||'')+'</strong><table><thead><tr><th>Date</th><th>Invoice</th><th>Item</th><th>Qty</th><th>Cost Price</th><th>MRP</th><th>Selling Price</th><th>Total CP</th><th>Total MRP</th><th>Total SP</th></tr></thead><tbody>'+itemRows.map(it=>`<tr><td>${it.date}</td><td>${it.id}</td><td>${it.name}</td><td>${it.qty}</td><td>${formatINR(it.cp)}</td><td>${formatINR(it.mrp)}</td><td>${formatINR(it.sp)}</td><td>${formatINR(it.cp*it.qty)}</td><td>${formatINR(it.mrp*it.qty)}</td><td>${formatINR(it.sp*it.qty)}</td></tr>`).join('')+'</tbody><tfoot><tr><th colspan="3">Total</th><th>'+itemRows.reduce((a,x)=>a+x.qty,0)+'</th><th colspan="3"></th><th>'+formatINR(itemRows.reduce((a,x)=>a+x.cp*x.qty,0))+'</th><th>'+formatINR(itemRows.reduce((a,x)=>a+x.mrp*x.qty,0))+'</th><th>'+formatINR(itemRows.reduce((a,x)=>a+x.sp*x.qty,0))+'</th></tr></tfoot></table>';});
+    employeeHost?.querySelectorAll('[data-employee-attendance]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeAttendance);if(!x)return;attendanceDate.value=(new Date()).toISOString().slice(0,10);renderAttendanceEditor();employeeAttendanceHistory.innerHTML='<strong>Attendance history — '+(x.name||'')+'</strong><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>'+(x.attendance||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(a=>`<tr><td>${a.date}</td><td>${a.status}</td></tr>`).join('')+'</tbody></table>';});
+    employeeHost?.querySelectorAll('[data-employee-edit]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeEdit);if(!x)return;editingEmployeeId=x.id;identityEmployeeId.value=x.id;identityEmployeeName.value=x.name||'';identityEmployeePhone.value=x.phone||'';identityEmployeeSalary.value=x.salary||0;identityEmployeeSalaryType.value=x.salaryType||'monthly';updateEmployeeRateLabel();employeeIdentityForm.style.display='block';btnSaveIdentityEmployee.textContent='Update Employee';});
+    employeeHost?.querySelectorAll('[data-employee-delete]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeDelete);if(x&&confirm(`Delete employee ${x.name}?`)){employees=employees.filter(y=>y!==x);saveLocal();renderIdentityTab();}});
+    renderAttendanceView();
+  }
+  const sellerIdentityForm=document.getElementById('sellerIdentityForm'), customerIdentityForm=document.getElementById('customerIdentityForm'), employeeIdentityForm=document.getElementById('employeeIdentityForm');
+  const identityEmployeeSalaryType=document.getElementById('identityEmployeeSalaryType');
+  const identityEmployeeSalary=document.getElementById('identityEmployeeSalary');
+  try{localStorage.removeItem('employeePayslips');}catch(e){} // Payslip feature removed: clear old saved payslip data.
+  function updateEmployeeRateLabel(){
+    const label=document.getElementById('identityEmployeeRateLabel');
+    if(label) label.textContent=identityEmployeeSalaryType?.value==='daily'?'Daily Wage (₹ per present day)':'Monthly Salary (₹)';
+  }
+  identityEmployeeSalaryType?.addEventListener('change',updateEmployeeRateLabel);
+  updateEmployeeRateLabel();
+
+  const attendanceDate=document.getElementById('attendanceDate'), attendanceEditor=document.getElementById('employeeAttendanceEditor');
+  const employeeAttendancePanel=document.getElementById('employeeAttendancePanel');
+  attendanceDate.value=(new Date()).toISOString().slice(0,10);
+  document.getElementById('btnShowAddEmployee').onclick=()=>{employeeAttendancePanel.style.display='none';document.getElementById('employeeAttendanceViewPanel').style.display='none';employeeIdentityForm.style.display='block';editingEmployeeId=null;employeeIdentityForm.reset();identityEmployeeId.value='';identityEmployeeSalary.value='0';identityEmployeeSalaryType.value='monthly';updateEmployeeRateLabel();btnSaveIdentityEmployee.textContent='Save Employee';};
+  document.getElementById('btnShowAttendance').onclick=()=>{employeeIdentityForm.style.display='none';document.getElementById('employeeAttendanceViewPanel').style.display='none';employeeAttendancePanel.style.display='block';renderAttendanceEditor();};
+  // Read-only monthly attendance grid: dates down the rows, employees across the columns. Editing is only in the Attendance panel.
+  document.getElementById('btnViewAttendance').onclick=()=>{employeeIdentityForm.style.display='none';employeeAttendancePanel.style.display='none';document.getElementById('employeeAttendanceViewPanel').style.display='block';renderAttendanceView();};
+  document.getElementById('attendanceViewMonth').addEventListener('change',renderAttendanceView);
+  function renderAttendanceView(){
+    const monthInput=document.getElementById('attendanceViewMonth'), host=document.getElementById('employeeAttendanceView');
+    if(!monthInput||!host)return;
+    if(!/^\d{4}-\d{2}$/.test(monthInput.value)) monthInput.value=new Date().toISOString().slice(0,7);
+    const month=monthInput.value, year=Number(month.slice(0,4)), mon=Number(month.slice(5,7));
+    const daysInMonth=new Date(year,mon,0).getDate();
+    const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    if(!employees.length){host.innerHTML='<p style="padding:8px;">No employees added yet.</p>';return;}
+    const presentSets=employees.map(e=>new Set((e.attendance||[]).filter(a=>String(a.status||'').toLowerCase()==='present').map(a=>String(a.date))));
+    let body='';
+    for(let d=1;d<=daysInMonth;d++){
+      const key=month+'-'+String(d).padStart(2,'0');
+      const dow=dayNames[new Date(year,mon-1,d).getDay()];
+      body+='<tr><td style="white-space:nowrap;">'+String(d).padStart(2,'0')+'-'+String(mon).padStart(2,'0')+'-'+year+' ('+dow+')</td>'+presentSets.map(set=>'<td style="text-align:center;">'+(set.has(key)?'✔':'')+'</td>').join('')+'</tr>';
+    }
+    const totals=presentSets.map(set=>{let c=0;for(let d=1;d<=daysInMonth;d++){if(set.has(month+'-'+String(d).padStart(2,'0')))c++;}return c;});
+    host.innerHTML='<table><thead><tr><th>Date</th>'+employees.map(e=>'<th style="text-align:center;">'+(e.name||'')+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody><tfoot><tr style="font-weight:bold;background:#f1f3f5;"><td>Total Days Present</td>'+totals.map(t=>'<td style="text-align:center;">'+t+'</td>').join('')+'</tr></tfoot></table>';
+  }
+  function renderAttendanceEditor(){
+    const date=attendanceDate.value||new Date().toISOString().slice(0,10);
+    const savedCount=employees.filter(e=>(e.attendance||[]).some(a=>a.date===date)).length;
+    document.getElementById('attendanceDateStatus').textContent=savedCount ? `Saved attendance found for ${date}. You can edit and save it again.` : `No attendance saved for ${date}.`;
+    attendanceEditor.innerHTML='<table><thead><tr><th>Employee</th><th>Present</th><th>Absent</th></tr></thead><tbody>'+employees.map(e=>{const rec=(e.attendance||[]).find(a=>a.date===date);const present=rec ? rec.status==='Present' : false;return `<tr><td>${e.name||''}</td><td><input type="checkbox" data-attendance-id="${e.id}" ${present?'checked':''} aria-label="Present"></td><td><input type="checkbox" data-absent-id="${e.id}" ${rec && rec.status!=='Present'?'checked':''} aria-label="Absent"></td></tr>`;}).join('')+'</tbody></table>';
+    attendanceEditor.querySelectorAll('[data-attendance-id]').forEach(cb=>cb.addEventListener('change',()=>{const other=attendanceEditor.querySelector(`[data-absent-id="${cb.dataset.attendanceId}"]`);if(other)other.checked=!cb.checked;}));
+    attendanceEditor.querySelectorAll('[data-absent-id]').forEach(cb=>cb.addEventListener('change',()=>{const other=attendanceEditor.querySelector(`[data-attendance-id="${cb.dataset.absentId}"]`);if(other)other.checked=!cb.checked;}));
+  }
+  attendanceDate.addEventListener('change',renderAttendanceEditor);
+  document.getElementById('btnSaveAttendance').onclick=()=>{const date=attendanceDate.value;if(!date)return alert('Select attendance date.');attendanceEditor.querySelectorAll('[data-attendance-id]').forEach(cb=>{const emp=employees.find(e=>String(e.id)===cb.dataset.attendanceId);if(!emp)return;const absent=attendanceEditor.querySelector(`[data-absent-id="${cb.dataset.attendanceId}"]`);const status=cb.checked?'Present':'Absent';if(absent)absent.checked=!cb.checked;emp.attendance=emp.attendance||[];const old=emp.attendance.find(a=>a.date===date);if(old)old.status=status;else emp.attendance.push({date,status});});saveLocal();renderAttendanceEditor();renderIdentityTab();alert(getCloudUrl()&&cloudInitialized?'Attendance saved locally and synchronization started. Check the cloud status in Settings for confirmation.':'Attendance saved on this device. Connect Google Sheets in Settings to sync online.');};
+  sellerIdentityForm?.addEventListener('submit',e=>{e.preventDefault();const data={name:identitySellerName.value.trim(),contact:identitySellerContact.value.trim(),location:identitySellerLocation.value.trim(),address:identitySellerAddress.value.trim()};if(!data.name)return;let x=sellers.find(y=>String(y.id)===String(editingIdentitySellerId));if(x)Object.assign(x,data);else sellers.push({id:'SEL-'+Date.now(),...data});editingIdentitySellerId=null;sellerIdentityForm.reset();btnSaveIdentitySeller.textContent='Save Seller';saveLocal();renderIdentityTab();});
+  document.getElementById('btnClearIdentitySeller')?.addEventListener('click',()=>{editingIdentitySellerId=null;sellerIdentityForm.reset();btnSaveIdentitySeller.textContent='Save Seller';});
+  customerIdentityForm?.addEventListener('submit',e=>{e.preventDefault();const name=identityCustomerName.value.trim(),phone=identityCustomerPhone.value.trim(),location=identityCustomerLocation.value.trim(),address=identityCustomerAddress.value.trim();if(!name)return;let x=customers.find(y=>String(y.customerId)===String(editingIdentityCustomerId));if(x){Object.assign(x,{name,phone:normalizedIdentityPhone(phone),location,address});}else customers.push({customerId:nextCustomerId(),name,phone:normalizedIdentityPhone(phone),location,address});editingIdentityCustomerId=null;customerIdentityForm.reset();btnSaveIdentityCustomer.textContent='Save Customer';saveLocal();renderIdentityTab();});
+  function normalizedIdentityPhone(v){const d=String(v||'').replace(/\\D/g,'');return d.length===10?'91'+d:d;}
+  document.getElementById('btnClearIdentityCustomer')?.addEventListener('click',()=>{editingIdentityCustomerId=null;customerIdentityForm.reset();btnSaveIdentityCustomer.textContent='Save Customer';renderIdentityTab();});
+  employeeIdentityForm?.addEventListener('submit',e=>{e.preventDefault();const name=identityEmployeeName.value.trim();if(!name)return;let x=employees.find(y=>String(y.id)===String(editingEmployeeId));const salaryType=identityEmployeeSalaryType.value==='daily'?'daily':'monthly';if(!x){x={id:'EMP-'+String(Date.now()),name,phone:identityEmployeePhone.value.trim(),salary:Number(identityEmployeeSalary.value)||0,salaryType,attendance:[]};employees.push(x);}else{x.name=name;x.phone=identityEmployeePhone.value.trim();x.salary=Number(identityEmployeeSalary.value)||0;x.salaryType=salaryType;}editingEmployeeId=null;employeeIdentityForm.reset();identityEmployeeSalary.value='0';identityEmployeeSalaryType.value='monthly';updateEmployeeRateLabel();employeeIdentityForm.style.display='none';btnSaveIdentityEmployee.textContent='Save Employee';saveLocal();renderIdentityTab();});
+  document.getElementById('btnClearIdentityEmployee')?.addEventListener('click',()=>{editingEmployeeId=null;employeeIdentityForm.reset();identityEmployeeSalary.value='0';employeeIdentityForm.style.display='none';btnSaveIdentityEmployee.textContent='Save Employee';});
   /* CUSTOM ADVANCED REPORTS MODULE */
   const reportTypeSelect = document.getElementById('reportTypeSelect');
   const reportDateRangePreset = document.getElementById('reportDateRangePreset');
@@ -4294,6 +4741,10 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       }
     });
 
+    const customerModeBox = document.getElementById('customerReportModeBox');
+    reportTypeSelect.onchange = () => { if (customerModeBox) customerModeBox.style.display = reportTypeSelect.value === 'customer_report' ? 'flex' : 'none'; generateReport(); };
+    document.querySelectorAll('input[name="customerReportMode"]').forEach(r => r.onchange = generateReport);
+    if (customerModeBox) customerModeBox.style.display = reportTypeSelect.value === 'customer_report' ? 'flex' : 'none';
     btnGenerateReport.onclick = generateReport;
     btnExportReportExcel.onclick = exportReportToExcel;
     btnExportReportPDF.onclick = exportReportToPDF;
@@ -4469,7 +4920,41 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     let rowClasses = [];
     let isOverall = false;
 
-    if (type === 'monthly_custom') {
+    if (type === 'customer_report') {
+      const mode = document.querySelector('input[name="customerReportMode"]:checked')?.value || 'item';
+      reportTitle = mode === 'item' ? 'Customer Report — Item-wise' : (mode === 'customer' ? 'Customer Report — Customer-wise' : 'Customer Report — Date-wise');
+      headers = mode === 'item' ? ['Customer ID','Customer Name','Contact','Item Code','Item Name','Items Qty','Amount','Profit'] : (mode === 'customer' ? ['Customer ID','Customer Name','Contact','Bills','Items','Items Qty','Amount','Profit'] : ['Date','Customer ID','Customer Name','Contact','Items','Items Qty','Amount','Profit']);
+      const map = new Map();
+      invoices.filter(inv => inv.date >= startStr && inv.date <= endStr).forEach(inv => {
+        const customer = customers.find(c => String(c.customerId) === String(inv.customerId)) || customers.find(c => normalizePhoneKey(c.phone) === normalizePhoneKey(inv.customerPhone));
+        const cid = inv.customerId || customer?.customerId || 'WALK-IN';
+        const cname = inv.customerName || customer?.name || 'Walk-in';
+        const phone = inv.customerPhone || customer?.phone || '';
+        (inv.items || []).forEach(it => {
+          const key = mode === 'item' ? `${cid}|${it.code || ''}` : (mode === 'customer' ? `${cid}` : `${inv.date}|${cid}`);
+          if (!map.has(key)) map.set(key,{date:inv.date,cid,cname,phone,code:it.code||'',name:it.name||'',items:[],bills:new Set(),qty:0,amount:0,profit:0});
+          map.get(key).bills.add(String(inv.id));
+          const x=map.get(key); x.qty += Number(it.qty)||0; x.items.push(`${it.name} x${it.qty}`);
+          const lineAmount=(Number(it.sp)||0)*(Number(it.qty)||0)-(Number(it.discount)||0);
+          const itemProduct=products.find(p=>String(p.code)===String(it.code));
+          const itemCP=it.cp !== undefined && it.cp !== null ? Number(it.cp) : Number(itemProduct?.cp)||0;
+          x.amount += lineAmount; x.profit += (Number(it.sp)||0)*(Number(it.qty)||0)-itemCP*(Number(it.qty)||0)-(Number(it.discount)||0);
+        });
+      });
+      rows = [...map.values()].sort((a,b)=>(mode==='item'||mode==='customer') ? String(a.cname).localeCompare(String(b.cname)) || String(a.name).localeCompare(String(b.name)) : String(a.date).localeCompare(String(b.date)) || String(a.cname).localeCompare(String(b.cname))).map(x=>mode==='item'?[x.cid,x.cname,x.phone,x.code,x.name,x.qty,x.amount.toFixed(2),x.profit.toFixed(2)]:mode==='customer'?[x.cid,x.cname,x.phone,x.bills.size,x.items.join(', '),x.qty,x.amount.toFixed(2),x.profit.toFixed(2)]:[x.date,x.cid,x.cname,x.phone,x.items.join(', '),x.qty,x.amount.toFixed(2),x.profit.toFixed(2)]);
+      const totalQty=rows.reduce((a,r)=>a+Number(r[mode==='item'?5:5]||0),0), totalAmount=rows.reduce((a,r)=>a+Number(r[mode==='item'?6:6]||0),0), totalProfit=rows.reduce((a,r)=>a+Number(r[mode==='item'?7:7]||0),0);
+      footer = mode==='item'?['Total','','','','',totalQty,totalAmount.toFixed(2),totalProfit.toFixed(2)]:['Total','','','','',totalQty,totalAmount.toFixed(2),totalProfit.toFixed(2)];
+      chartConfig1={type:'bar',title:'Customer Amount and Profit',labels:rows.map(r=>String(r[mode==='date'?2:1]||'')).slice(0,30),datasets:[{label:'Amount (₹)',data:rows.map(r=>Number(r[6])||0).slice(0,30),backgroundColor:'#4B5FFF'},{label:'Profit (₹)',data:rows.map(r=>Number(r[7])||0).slice(0,30),backgroundColor:'#28a745'}]};
+    }
+    else if (type === 'expense_report') {
+      reportTitle = 'Expense Report'; headers = ['Date','Remark','Amount'];
+      const selected = expenses.filter(e=>String(e.date||'')>=startStr && String(e.date||'')<=endStr).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+      rows = selected.map(e=>[e.date||'',e.remark||'',Number(e.amount)||0]);
+      const total = selected.reduce((sum,e)=>sum+(Number(e.amount)||0),0); footer=['Total Expenses','',total.toFixed(2)];
+      const byDate={}; selected.forEach(e=>byDate[e.date]=(byDate[e.date]||0)+(Number(e.amount)||0));
+      const labels=Object.keys(byDate).sort(); chartConfig1={type:'bar',title:'Expenses by Date',labels:labels.length?labels:['No Data'],datasets:[{label:'Expense Amount (₹)',data:labels.length?labels.map(d=>byDate[d]):[0],backgroundColor:'#dc3545'}]};
+    }
+    else if (type === 'monthly_custom') {
       const catList = categories;
       reportTitle = `Monthly Report (Purchased & Sales Items Category Wise)`;
 
@@ -4902,6 +5387,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
   // Window load setup
   window.addEventListener('DOMContentLoaded', () => {
     loadFromLocal();
+    const loginPasswordInput = document.getElementById('password');
+    if (loginPasswordInput) { loginPasswordInput.focus(); loginPasswordInput.select(); }
   });
 })();
 </script>
