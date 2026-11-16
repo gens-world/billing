@@ -83,6 +83,14 @@
         .discount-section input { width: 100%; }
 
         .warning { color: #d9534f; font-weight: bold; margin-bottom: 8px; font-size: 0.8rem; }
+        .bulk-col { display: none; width: 34px; text-align: center; }
+        section.bulk-on .bulk-col { display: table-cell; }
+        .bulk-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 0.7rem; }
+        .bulk-bar button { margin: 0; }
+        .bulk-only { display: none; }
+        section.bulk-on .bulk-only { display: inline-flex; gap: 8px; align-items: center; }
+        section.bulk-on .bulk-off-only { display: none; }
+        .bulk-col input[type=checkbox] { width: 16px; height: 16px; margin: 0; cursor: pointer; }
         .success { color: #5cb85c; font-weight: bold; margin-bottom: 8px; font-size: 0.8rem; }
 
         /* A6 Print Format Settings[cite: 2] */
@@ -153,6 +161,7 @@
         <button data-tab="dataImport">Data Import</button>
         <button data-tab="report">Reports</button>
         <button data-tab="label">Label</button>
+        <button data-tab="deleteHistory">Delete History</button>
         <button data-tab="settings">Settings</button>
     </nav>
 
@@ -462,10 +471,19 @@
             <button id="btnDownloadStock" class="success-btn" style="margin-top:0;">Export Purchase History (XLSX)</button>
         </div>
 
+        <div class="bulk-bar">
+            <button type="button" class="secondary-btn bulk-off-only" data-bulk-toggle="stock">Select Multiple</button>
+            <span class="bulk-only">
+                <button type="button" class="danger-btn" data-bulk="stock" data-bulk-action="delete">Delete Selected</button>
+                <button type="button" class="secondary-btn" data-bulk-cancel="stock">Cancel</button>
+                <span id="bulkCount-stock" style="font-size:0.8rem;color:#555;">0 selected</span>
+            </span>
+        </div>
         <div class="scrollable" style="max-height: 420px;">
             <table>
                 <thead>
                     <tr>
+                        <th class="bulk-col"><input type="checkbox" class="bulk-all" data-bulk="stock" title="Select all shown rows"></th>
                         <th>Sr</th>
                         <th>Purchase ID</th>
                         <th>Purchase Date</th>
@@ -486,6 +504,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
+                        <th class="bulk-col"></th>
                         <th colspan="9" style="text-align: right;">Total Purchases:</th>
                         <th id="stockQtyTotal" class="num-align">0</th>
                         <th colspan="2"></th>
@@ -511,10 +530,19 @@
           </div>
         </div>
         
+        <div class="bulk-bar">
+            <button type="button" class="secondary-btn bulk-off-only" data-bulk-toggle="sales">Select Multiple</button>
+            <span class="bulk-only">
+                <button type="button" class="danger-btn" data-bulk="sales" data-bulk-action="delete">Delete Selected</button>
+                <button type="button" class="secondary-btn" data-bulk-cancel="sales">Cancel</button>
+                <span id="bulkCount-sales" style="font-size:0.8rem;color:#555;">0 selected</span>
+            </span>
+        </div>
         <div id="salesHistoryList" class="scrollable" style="max-height: 420px;">
           <table id="salesHistoryTable">
             <thead>
               <tr>
+                <th class="bulk-col"><input type="checkbox" class="bulk-all" data-bulk="sales" title="Select all shown rows"></th>
                 <th>Date</th>
                 <th>ID</th>
                 <th>Customer ID</th>
@@ -532,6 +560,7 @@
             </tbody>
             <tfoot>
               <tr id="salesOverallTotals" style="font-weight:bold;background:#f1f3f5;">
+                <td class="bulk-col"></td>
                 <td colspan="5">Overall Total (All Sales)</td>
                 <td class="num-align" id="salesTotalCash">₹0.00</td>
                 <td class="num-align" id="salesTotalOnline">₹0.00</td>
@@ -920,6 +949,53 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 &quot; style=&quot;display:block;width:100%;height:100%;min-height:520px;border:0;border-radius:0;background:#f4f6fa;&quot;"></iframe>
     </section>
 
+    <section id="deleteHistory" class="tab-content" aria-label="Delete History">
+        <h2 style="font-size: 1.1rem; margin-top: 0;">Delete History</h2>
+        <p style="font-size:0.8rem;color:#555;margin-top:0;">Every entry deleted anywhere in this program is logged here and synced to the <b>DeleteHistory</b> sheet in Google Sheets. Use <b>Restore</b> to put an entry back, or <b>Clear</b> (admin password required) to permanently remove a row from this log.</p>
+        <div style="display:flex;gap:1rem;align-items:flex-end;margin-bottom:0.8rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+                <label for="searchDeleteHistory">Search</label>
+                <input type="text" id="searchDeleteHistory" placeholder="Type, ID, name, details, date..." style="margin-bottom:0;">
+            </div>
+            <div style="min-width:190px;">
+                <label for="filterDeleteHistoryType">Type</label>
+                <select id="filterDeleteHistoryType" style="margin-bottom:0;">
+                    <option value="">All types</option>
+                    <option>Invoice</option><option>Expense</option><option>Offer</option><option>Product</option><option>Purchase</option><option>Category</option><option>Customer</option><option>Customer Suggestion</option><option>Seller</option><option>Employee</option>
+                </select>
+            </div>
+            <div id="deleteHistoryCount" style="font-size:0.8rem;color:#555;padding-bottom:8px;"></div>
+        </div>
+        <div class="bulk-bar">
+            <button type="button" class="secondary-btn bulk-off-only" data-bulk-toggle="dh">Select Multiple</button>
+            <span class="bulk-only">
+                <button type="button" class="success-btn" data-bulk="dh" data-bulk-action="restore">Restore Selected</button>
+                <button type="button" class="danger-btn" data-bulk="dh" data-bulk-action="clear">Clear Selected</button>
+                <button type="button" class="secondary-btn" data-bulk-cancel="dh">Cancel</button>
+                <span id="bulkCount-dh" style="font-size:0.8rem;color:#555;">0 selected</span>
+            </span>
+        </div>
+        <div class="scrollable" style="max-height: 480px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="bulk-col"><input type="checkbox" class="bulk-all" data-bulk="dh" title="Select all shown rows"></th>
+                        <th>Sr</th>
+                        <th>Deleted On</th>
+                        <th>Type</th>
+                        <th>ID / Code</th>
+                        <th>Name</th>
+                        <th>Details</th>
+                        <th class="num-align">Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="deleteHistoryTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
     <section id="settings" class="tab-content" aria-label="Settings">
         <h2 style="font-size:1.1rem;margin-top:0;">Settings</h2>
         <div style="max-width:650px;background:#f8f9fa;border:1px solid #ddd;border-radius:8px;padding:15px;">
@@ -1034,7 +1110,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
 <script>
 (() => {
-  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [], customers = [], sellers = [], employees = [];
+  let products = [], invoices = [], sales = [], categories = [], offers = [], purchaseHistory = [], expenses = [], customers = [], sellers = [], employees = [], deleteHistory = [];
   let invoiceSequence = 0, customerSequence = 0;
   let refBillSuggestions = [], sellerSuggestions = [];
   let editingIdentitySellerId = null, editingIdentityCustomerId = null, editingEmployeeId = null;
@@ -1412,6 +1488,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       customers,
       sellers,
       employees,
+      deleteHistory,
       invoiceSequence,
       customerSequence,
       refBillSuggestions,
@@ -1452,6 +1529,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     customers = [...mergedCustomers.values()];
     sellers = Array.isArray(data.sellers) ? data.sellers : sellers;
     employees = Array.isArray(data.employees) ? data.employees : employees;
+    if (Array.isArray(data.deleteHistory) && (data.deleteHistory.length || !deleteHistory.length)) deleteHistory = data.deleteHistory;
     employees.forEach(e=>{if(!e.salaryType)e.salaryType='monthly';});
     if (!Array.isArray(data.sellers)) { purchaseHistory.forEach(ph => { const name=String(ph.sellerName||'').trim(); if(name&&!sellers.some(x=>String(x.name||'').toLowerCase()===name.toLowerCase())) sellers.push({id:'SEL-'+Date.now()+'-'+sellers.length,name,contact:'',location:'',address:''}); }); }
     if (!Array.isArray(data.refBillSuggestions)) refBillSuggestions=[...new Set(purchaseHistory.map(ph=>String(ph.refBillNo||'').trim()).filter(Boolean))];
@@ -1488,6 +1566,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     customers = JSON.parse(localStorage.getItem('customers') || '[]');
     sellers = JSON.parse(localStorage.getItem('sellers') || '[]');
     employees = JSON.parse(localStorage.getItem('employees') || '[]');
+    try { deleteHistory = JSON.parse(localStorage.getItem('deleteHistory') || '[]'); if (!Array.isArray(deleteHistory)) deleteHistory = []; } catch (_) { deleteHistory = []; }
     if (localStorage.getItem('sellers') === null) purchaseHistory.forEach(ph => { const name=String(ph.sellerName||'').trim(); if(name&&!sellers.some(x=>String(x.name||'').toLowerCase()===name.toLowerCase())) sellers.push({id:'SEL-'+Date.now()+'-'+sellers.length,name,contact:'',location:'',address:''}); });
     invoiceSequence = Number(localStorage.getItem('invoiceSequence')) || 0;
     customerSequence = Number(localStorage.getItem('customerSequence')) || 0;
@@ -1511,6 +1590,276 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     recalculateInventoryFromPurchases();
   }
 
+  /* =========================== DELETE HISTORY =========================== */
+  function dhEsc(v){ return String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function dhStamp(){
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  // Call BEFORE saveLocal() so the log is saved/synced together with the deletion.
+  function logDeletion(type, refId, name, details, amount, record){
+    try {
+      deleteHistory.unshift({
+        logId: 'DEL-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        deletedAt: dhStamp(),
+        type: type,
+        refId: String(refId ?? ''),
+        name: String(name ?? ''),
+        details: String(details ?? ''),
+        amount: Number(amount) || 0,
+        status: 'Deleted',
+        restoreData: JSON.stringify(record ?? {})
+      });
+    } catch (err) { console.error('Could not log deletion', err); }
+  }
+
+  function renderDeleteHistory(){
+    const body = document.getElementById('deleteHistoryTableBody');
+    if (!body) return;
+    const q = (document.getElementById('searchDeleteHistory')?.value || '').trim().toLowerCase();
+    const t = document.getElementById('filterDeleteHistoryType')?.value || '';
+    const rows = deleteHistory.filter(x => (!t || x.type === t) && (!q || [x.type, x.refId, x.name, x.details, x.deletedAt, x.status].join(' ').toLowerCase().includes(q)));
+    const count = document.getElementById('deleteHistoryCount');
+    if (count) count.textContent = rows.length + ' of ' + deleteHistory.length + ' entries';
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#777;">No deleted entries.</td></tr>'; bulkSync('dh', []); return; }
+    body.innerHTML = rows.map((x, i) => {
+      const restored = x.status === 'Restored';
+      return `<tr>
+        ${bulkCheckboxCell('dh', x.logId)}
+        <td>${i + 1}</td>
+        <td>${dhEsc(x.deletedAt)}</td>
+        <td>${dhEsc(x.type)}</td>
+        <td>${dhEsc(x.refId)}</td>
+        <td>${dhEsc(x.name)}</td>
+        <td>${dhEsc(x.details)}</td>
+        <td class="num-align">${x.amount ? formatINR(x.amount) : ''}</td>
+        <td style="color:${restored ? '#28a745' : '#d9534f'};font-weight:700;">${dhEsc(x.status || 'Deleted')}</td>
+        <td style="white-space:nowrap;">
+          <button type="button" class="success-btn" data-dh-restore="${dhEsc(x.logId)}" ${restored ? 'disabled' : ''} style="margin:0;padding:2px 8px;font-size:0.75rem;">Restore</button>
+          <button type="button" class="danger-btn" data-dh-clear="${dhEsc(x.logId)}" style="margin:0;padding:2px 8px;font-size:0.75rem;">Clear</button>
+        </td>
+      </tr>`;
+    }).join('');
+    body.querySelectorAll('[data-dh-restore]').forEach(b => b.onclick = () => restoreDeletedEntry(b.dataset.dhRestore));
+    body.querySelectorAll('[data-dh-clear]').forEach(b => b.onclick = () => clearDeleteHistoryRow(b.dataset.dhClear));
+    bulkSync('dh', rows.map(x => x.logId));
+  }
+
+  function askAdminPassword(message){
+    const entered = prompt(message);
+    if (entered === null) return false;
+    if (entered !== SETTINGS_ADMIN_PASSWORD) { alert('Incorrect admin password. Nothing was cleared.'); return false; }
+    return true;
+  }
+
+  function clearDeleteHistoryRow(logId){
+    const idx = deleteHistory.findIndex(x => x.logId === logId);
+    if (idx < 0) return;
+    const x = deleteHistory[idx];
+    if (!askAdminPassword('Admin password required to clear this history entry:')) return;
+    if (!confirm(`Permanently clear this history entry (${x.type} ${x.refId || x.name})? It can no longer be restored.`)) return;
+    deleteHistory.splice(idx, 1);
+    saveLocal();
+    renderDeleteHistory();
+  }
+
+  // Restores one logged entry. Returns null on success, or a text reason when it cannot be restored.
+  function doRestore(x){
+    if (x.status === 'Restored') return 'already restored';
+    let rec = null;
+    try { rec = JSON.parse(x.restoreData || ''); } catch (_) {}
+    if (!rec || typeof rec !== 'object' || !Object.keys(rec).length) return 'restore data is missing';
+    const same = (a, b) => String(a) === String(b);
+    switch (x.type) {
+      case 'Invoice': {
+        const inv = rec.invoice;
+        if (!inv) return 'restore data is invalid';
+        if (invoices.some(i => same(i.id, inv.id))) return 'Invoice ' + inv.id + ' already exists';
+        invoices.push(inv);
+        const total = calculateInvoiceTotal(inv);
+        const s = sales.find(r => r.date === inv.date);
+        if (s) s.amount = (Number(s.amount) || 0) + total; else sales.push({ date: inv.date, amount: total });
+        recalculateInventoryFromPurchases();
+        break;
+      }
+      case 'Expense':
+        if (expenses.some(e => same(e.id, rec.id))) return 'Expense already exists';
+        expenses.push(rec); break;
+      case 'Offer':
+        if (offers.some(o => same(o.code, rec.code))) return 'Offer for code ' + rec.code + ' already exists';
+        offers.push(rec); break;
+      case 'Product':
+        if (products.some(p => same(p.code, rec.code))) return 'Product ' + rec.code + ' already exists';
+        products.push(rec); break;
+      case 'Purchase':
+        if (purchaseHistory.some(p => same(p.purchaseId, rec.purchaseId))) return 'Purchase ' + rec.purchaseId + ' already exists';
+        purchaseHistory.push(rec);
+        recalculateInventoryFromPurchases();
+        break;
+      case 'Category':
+        if (categories.some(c => String(c).toLowerCase() === String(rec.name).toLowerCase())) return 'Category ' + rec.name + ' already exists';
+        categories.push(rec.name); break;
+      case 'Customer':
+      case 'Customer Suggestion': {
+        const pk = normalizePhoneKey(rec.phone);
+        if (customers.some(c => same(c.customerId, rec.customerId) || (pk && normalizePhoneKey(c.phone) === pk))) return 'Customer ' + (rec.name || rec.customerId) + ' already exists';
+        customers.push(rec);
+        try {
+          const nk = String(rec.name || '').trim() ? 'NAME:' + String(rec.name).trim().toLowerCase() : '';
+          const keys = [pk, nk].filter(Boolean);
+          const dk = JSON.parse(localStorage.getItem('deletedCustomerKeys') || '[]').filter(k => !keys.includes(k));
+          localStorage.setItem('deletedCustomerKeys', JSON.stringify(dk));
+        } catch (_) {}
+        break;
+      }
+      case 'Seller':
+        if (sellers.some(s => same(s.id, rec.id))) return 'Seller ' + (rec.name || rec.id) + ' already exists';
+        sellers.push(rec); break;
+      case 'Employee':
+        if (employees.some(e => same(e.id, rec.id))) return 'Employee ' + (rec.name || rec.id) + ' already exists';
+        employees.push(rec); break;
+      default:
+        return 'unknown entry type ' + x.type;
+    }
+    x.status = 'Restored';
+    return null;
+  }
+
+  function restoreDeletedEntry(logId){
+    const x = deleteHistory.find(r => r.logId === logId);
+    if (!x) return;
+    if (x.status === 'Restored') return alert('This entry was already restored.');
+    if (!confirm(`Restore ${x.type} "${x.refId || x.name}"?` + (x.type === 'Invoice' ? ' Stock will be deducted again.' : ''))) return;
+    const err = doRestore(x);
+    if (err) return alert('Not restored: ' + err + '.');
+    saveLocal();
+    renderDeleteHistory();
+    alert(`${x.type} restored successfully.`);
+  }
+
+  document.getElementById('searchDeleteHistory')?.addEventListener('input', renderDeleteHistory);
+  document.getElementById('filterDeleteHistoryType')?.addEventListener('change', renderDeleteHistory);
+
+  /* ============== MULTI-SELECT (Sales / Purchase / Delete History) ============== */
+  const bulk = { sales: { set: new Set(), section: 'sales' }, stock: { set: new Set(), section: 'stock' }, dh: { set: new Set(), section: 'deleteHistory' } };
+  function bulkCheckboxCell(kind, id){
+    return `<td class="bulk-col"><input type="checkbox" class="bulk-cb" data-bulk="${kind}" data-id="${dhEsc(id)}" ${bulk[kind].set.has(String(id)) ? 'checked' : ''}></td>`;
+  }
+  // Keep only selections that are still visible (so hidden rows can never be deleted by accident).
+  function bulkSync(kind, visibleIds){
+    const vis = new Set(visibleIds.map(String));
+    [...bulk[kind].set].forEach(id => { if (!vis.has(id)) bulk[kind].set.delete(id); });
+    updateBulkUI(kind);
+  }
+  function updateBulkUI(kind){
+    const cbs = [...document.querySelectorAll(`.bulk-cb[data-bulk="${kind}"]`)];
+    const sel = cbs.filter(c => c.checked).length;
+    const all = document.querySelector(`.bulk-all[data-bulk="${kind}"]`);
+    if (all) { all.checked = cbs.length > 0 && sel === cbs.length; all.indeterminate = sel > 0 && sel < cbs.length; }
+    const c = document.getElementById('bulkCount-' + kind);
+    if (c) c.textContent = sel + ' selected';
+  }
+  function bulkRerender(kind){
+    if (kind === 'sales') renderSalesHistory();
+    else if (kind === 'stock') renderStock((document.getElementById('searchStock')?.value || '').trim());
+    else renderDeleteHistory();
+  }
+  function setBulkMode(kind, on){
+    document.getElementById(bulk[kind].section)?.classList.toggle('bulk-on', on);
+    if (!on) bulk[kind].set.clear();
+    bulkRerender(kind);
+  }
+
+  function bulkDeleteInvoices(ids){
+    let n = 0;
+    ids.forEach(id => {
+      const inv = invoices.find(i => String(i.id) === String(id));
+      if (!inv) return;
+      const total = calculateInvoiceTotal(inv);
+      logDeletion('Invoice', inv.id, inv.customerName || 'Walk-in', (Array.isArray(inv.items) ? inv.items.map(it => `${it.name || it.code} x${it.qty}`).join(', ') : '') + ' | Date: ' + inv.date, total, { invoice: inv });
+      const s = sales.find(r => r.date === inv.date);
+      if (s) { s.amount -= total; if (s.amount <= 0) sales = sales.filter(r => r.date !== inv.date); }
+      invoices = invoices.filter(i => String(i.id) !== String(id));
+      n++;
+    });
+    recalculateInventoryFromPurchases();
+    saveLocal();
+    return n;
+  }
+  function bulkDeletePurchases(ids){
+    const tokens = new Set(ids.map(String));
+    const tokenOf = ph => String(ph.purchaseId || ('PUR-' + ph.id));
+    const targets = purchaseHistory.filter(ph => tokens.has(tokenOf(ph)));
+    targets.forEach(ph => logDeletion('Purchase', ph.purchaseId || ('PUR-' + ph.id), ph.name, `Code: ${ph.code} | Qty: ${ph.qty} | Seller: ${ph.sellerName || '-'} | Date: ${ph.purchaseDate || ''}`, (Number(ph.cp) || 0) * (Number(ph.qty) || 0), ph));
+    purchaseHistory = purchaseHistory.filter(ph => !tokens.has(tokenOf(ph)));
+    recalculateInventoryFromPurchases();
+    saveLocal();
+    return targets.length;
+  }
+
+  function runBulkAction(kind, action){
+    const ids = [...bulk[kind].set];
+    if (!ids.length) return alert('Select at least one row first.');
+    if (kind === 'sales') {
+      if (!confirm(`Delete ${ids.length} selected invoice(s)? Stock will be restored.`)) return;
+      const n = bulkDeleteInvoices(ids);
+      setBulkMode('sales', false);
+      renderDashboard(); renderInventory();
+      alert(`${n} invoice(s) deleted and logged in Delete History.`);
+    } else if (kind === 'stock') {
+      if (!confirm(`Delete ${ids.length} selected purchase log(s)? Stock quantity will be re-calculated.`)) return;
+      const n = bulkDeletePurchases(ids);
+      setBulkMode('stock', false);
+      renderInventory();
+      alert(`${n} purchase log(s) deleted and logged in Delete History.`);
+    } else if (kind === 'dh' && action === 'restore') {
+      if (!confirm(`Restore ${ids.length} selected entr${ids.length === 1 ? 'y' : 'ies'}? Entries that already exist will be skipped.`)) return;
+      let ok = 0; const skipped = [];
+      ids.forEach(id => {
+        const x = deleteHistory.find(r => r.logId === id);
+        if (!x) return;
+        const err = doRestore(x);
+        if (err) skipped.push(`${x.type} ${x.refId || x.name}: ${err}`); else ok++;
+      });
+      if (ok) saveLocal();
+      setBulkMode('dh', false);
+      alert(`Restored: ${ok}\nSkipped: ${skipped.length}` + (skipped.length ? '\n\n' + skipped.slice(0, 10).join('\n') + (skipped.length > 10 ? `\n...and ${skipped.length - 10} more` : '') : ''));
+    } else if (kind === 'dh' && action === 'clear') {
+      if (!askAdminPassword(`Admin password required to clear ${ids.length} history entr${ids.length === 1 ? 'y' : 'ies'}:`)) return;
+      if (!confirm(`Permanently clear ${ids.length} selected history entr${ids.length === 1 ? 'y' : 'ies'}? They can no longer be restored.`)) return;
+      const sel = new Set(ids);
+      deleteHistory = deleteHistory.filter(r => !sel.has(r.logId));
+      saveLocal();
+      setBulkMode('dh', false);
+      alert(`${ids.length} history entr${ids.length === 1 ? 'y' : 'ies'} cleared.`);
+    }
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest?.('[data-bulk-toggle],[data-bulk-cancel],[data-bulk-action]');
+    if (!b) return;
+    if (b.dataset.bulkToggle) setBulkMode(b.dataset.bulkToggle, true);
+    else if (b.dataset.bulkCancel) setBulkMode(b.dataset.bulkCancel, false);
+    else runBulkAction(b.dataset.bulk, b.dataset.bulkAction);
+  });
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (!t.classList) return;
+    if (t.classList.contains('bulk-cb')) {
+      const k = t.dataset.bulk;
+      if (t.checked) bulk[k].set.add(t.dataset.id); else bulk[k].set.delete(t.dataset.id);
+      updateBulkUI(k);
+    } else if (t.classList.contains('bulk-all')) {
+      const k = t.dataset.bulk;
+      document.querySelectorAll(`.bulk-cb[data-bulk="${k}"]`).forEach(cb => {
+        cb.checked = t.checked;
+        if (t.checked) bulk[k].set.add(cb.dataset.id); else bulk[k].set.delete(cb.dataset.id);
+      });
+      updateBulkUI(k);
+    }
+  });
+  /* ====================================================================== */
+
   function saveLocal(){
     localStorage.setItem('products', JSON.stringify(products));
     localStorage.setItem('invoices', JSON.stringify(invoices));
@@ -1522,6 +1871,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     localStorage.setItem('customers', JSON.stringify(customers));
     localStorage.setItem('sellers', JSON.stringify(sellers));
     localStorage.setItem('employees', JSON.stringify(employees));
+    localStorage.setItem('deleteHistory', JSON.stringify(deleteHistory));
     localStorage.setItem('invoiceSequence', String(invoiceSequence));
     localStorage.setItem('customerSequence', String(customerSequence));
     localStorage.setItem('refBillSuggestions', JSON.stringify(refBillSuggestions));
@@ -1705,6 +2055,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     localStorage.setItem('customers', JSON.stringify(customers));
     localStorage.setItem('sellers', JSON.stringify(sellers));
     localStorage.setItem('employees', JSON.stringify(employees));
+    localStorage.setItem('deleteHistory', JSON.stringify(deleteHistory));
     localStorage.setItem('invoiceSequence', String(invoiceSequence));
     localStorage.setItem('customerSequence', String(customerSequence));
     localStorage.setItem('refBillSuggestions', JSON.stringify(refBillSuggestions));
@@ -1843,6 +2194,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       case 'offers': renderOffers(); break;
       case 'inventorySetup': renderPurchaseSuggestions(); renderInventory(); break;
       case 'masterInventory': renderInventory(); break;
+      case 'deleteHistory': renderDeleteHistory(); break;
       case 'settings': initSettingsUI(); break;
       case 'stock': renderStock(); break;
       case 'sales': renderSalesHistory(); break;
@@ -2132,6 +2484,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
   window.deleteExpense = (id) => {
     if (confirm("Are you sure you want to delete this expense entry?")) {
+      { const e0 = expenses.find(exp => exp.id === id); if (e0) logDeletion('Expense', e0.id, e0.remark || '', 'Date: ' + e0.date, e0.amount, e0); }
       expenses = expenses.filter(exp => exp.id !== id);
       saveLocal();
       renderExpenseTable();
@@ -2277,6 +2630,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
   window.deleteOffer = (code) => {
     if (confirm(`Remove offer for code ${code}?`)) {
+      { const o0 = offers.find(o => String(o.code) === String(code)); if (o0) logDeletion('Offer', o0.code, o0.name || '', `Qty: ${o0.qty} | CP: ${o0.cp} | SP: ${o0.sp}`, o0.offerPrice, o0); }
       offers = offers.filter(o => String(o.code) !== String(code));
       saveLocal();
       renderOffersTable();
@@ -2374,6 +2728,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     }
     catDeleteWarning.style.display = 'none';
     if(confirm(`Confirm deleting category: ${selectedCat}`)){
+      logDeletion('Category', '', selectedCat, 'Category', 0, { name: selectedCat });
       categories = categories.filter(c => c.toLowerCase() !== selectedCat.toLowerCase());
       products.forEach(p => { if (p.category.toLowerCase() === selectedCat.toLowerCase()) p.category = "Uncategorized"; });
       saveLocal(); 
@@ -2942,6 +3297,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     if (!prod) return alert("Product not found");
 
     if (confirm(`Are you sure you want to delete product "${prod.name}" (${prod.code}) from Master Inventory?`)) {
+      logDeletion('Product', prod.code, prod.name, `Category: ${prod.category} | Qty: ${prod.qty} | CP: ${prod.cp} | SP: ${prod.sp}`, prod.sp, prod);
       products = products.filter(p => String(p.code) !== code);
       saveLocal();
       renderInventory();
@@ -2984,6 +3340,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
       const purchaseWeekendClass = getWeekendRowClass(ph.purchaseDate);
       html += `<tr class="${purchaseWeekendClass}">
+        ${bulkCheckboxCell('stock', ph.purchaseId || ('PUR-' + ph.id))}
         <td>${serial++}</td>
         <td><strong>${ph.purchaseId || ('PUR-' + ph.id)}</strong></td>
         <td>${ph.purchaseDate || '-'}</td>
@@ -3004,7 +3361,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       </tr>`;
     });
 
-    stockTableBody.innerHTML = html || `<tr><td colspan="14" style="text-align:center;">No purchase logs found.</td></tr>`;
+    stockTableBody.innerHTML = html || `<tr><td colspan="15" style="text-align:center;">No purchase logs found.</td></tr>`;
+    bulkSync('stock', filtered.map(ph => String(ph.purchaseId || ('PUR-' + ph.id))));
     stockQtyTotal.textContent = totalQty;
     stockCPTotal.textContent = totalCP.toFixed(2);
   }
@@ -3049,6 +3407,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     if (!ph) return alert("Purchase entry not found.");
 
     if (confirm(`Are you sure you want to delete purchase log ${ph.purchaseId || ph.code}? Stock quantity will be re-calculated.`)) {
+      logDeletion('Purchase', ph.purchaseId || ('PUR-' + ph.id), ph.name, `Code: ${ph.code} | Qty: ${ph.qty} | Seller: ${ph.sellerName || '-'} | Date: ${ph.purchaseDate || ''}`, (Number(ph.cp) || 0) * (Number(ph.qty) || 0), ph);
       purchaseHistory = purchaseHistory.filter(item =>
         String(item.purchaseId || ('PUR-' + item.id)) !== token
       );
@@ -3279,6 +3638,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
         const customer = customers.find(c => String(c.customerId) === String(id));
         if (!customer || !confirm(`Delete saved customer ${customer.name || id}? Past invoices will remain unchanged.`)) return;
         try { const dk = JSON.parse(localStorage.getItem('deletedCustomerKeys') || '[]'); const k = normalizePhoneKey(customer.phone) || (String(customer.name || '').trim() ? 'NAME:' + String(customer.name).trim().toLowerCase() : ''); if (k && !dk.includes(k)) { dk.push(k); localStorage.setItem('deletedCustomerKeys', JSON.stringify(dk)); } } catch (_) {}
+        logDeletion('Customer Suggestion', customer.customerId, customer.name, `Phone: ${customer.phone || ''}`, 0, customer);
         customers = customers.filter(c => String(c.customerId) !== String(id));
         saveLocal(); renderCustomerSuggestions(); renderBillingSavedCustomerList();
       }));
@@ -4018,6 +4378,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
     if (confirm(`Are you sure you want to delete Invoice ID: ${id}? Stock will be restored.`)) {
       const invTotal = calculateInvoiceTotal(targetInvoice);
+      logDeletion('Invoice', targetInvoice.id, targetInvoice.customerName || 'Walk-in', (Array.isArray(targetInvoice.items) ? targetInvoice.items.map(it => `${it.name || it.code} x${it.qty}`).join(', ') : '') + ' | Date: ' + targetInvoice.date, invTotal, { invoice: targetInvoice });
       let saleRecord = sales.find(s => s.date === targetInvoice.date);
       if (saleRecord) {
         saleRecord.amount -= invTotal;
@@ -4068,6 +4429,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
 
       const weekendClass = getWeekendRowClass(inv.date);
       return `<tr class="${weekendClass}">
+        ${bulkCheckboxCell('sales', inv.id)}
         <td>${inv.date}</td>
         <td>${inv.id}</td>
         <td>${customerId || '-'}</td>
@@ -4086,7 +4448,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
       </tr>`;
     }).join('');
     
-    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="11" style="text-align:center;">No sales records found.</td></tr>';
+    salesHistoryTableBody.innerHTML = html || '<tr><td colspan="12" style="text-align:center;">No sales records found.</td></tr>';
+    bulkSync('sales', filteredInvoices.map(i => String(i.id)));
 
     // Overall totals cover ALL invoices (not affected by the date / search filters).
     let allCash = 0, allOnline = 0, allTotal = 0, allProfit = 0;
@@ -4642,8 +5005,8 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     if(identitySortState.customer==='desc') customerRows.sort((a,b)=>b.amount-a.amount); else if(identitySortState.customer==='asc') customerRows.sort((a,b)=>a.amount-b.amount);
     if(customerHost) customerHost.innerHTML='<table><thead><tr><th>ID</th><th>Name</th><th class="num-align">Contact</th><th>Location</th><th>Address</th><th class="num-align">Total Amount Purchased <button type="button" data-identity-sort="customer" title="Sort" style="margin:0;padding:0 5px;">'+identitySortArrow(identitySortState.customer)+'</button></th><th>History</th><th>Action</th></tr></thead><tbody>'+customerRows.map(r=>{const x=r.x;return `<tr><td>${x.customerId||''}</td><td>${x.name||''}</td><td class="num-align">${x.phone||''}</td><td>${x.location||''}</td><td>${x.address||''}</td><td class="num-align">${formatINR(r.amount)}</td><td><button type="button" data-customer-history="${x.customerId}">View</button></td><td><button type="button" data-customer-edit="${x.customerId}">Edit</button> <button type="button" class="danger-btn" data-customer-delete="${x.customerId}">Delete</button></td></tr>`;}).join('')+'</tbody></table>';
     document.querySelectorAll('[data-identity-sort]').forEach(b=>b.onclick=()=>{const k=b.dataset.identitySort;identitySortState[k]=identitySortState[k]==='none'?'desc':identitySortState[k]==='desc'?'asc':'none';renderIdentityTab();});
-    sellerHost?.querySelectorAll('[data-seller-delete]').forEach(b=>b.onclick=()=>{const x=sellers.find(y=>String(y.id)===b.dataset.sellerDelete);if(!x)return;const n=purchaseHistory.filter(ph=>String(ph.sellerName||'').trim().toLowerCase()===String(x.name||'').trim().toLowerCase()).length;if(n>0)return alert(`Cannot delete seller "${x.name}": ${n} purchase record(s) exist for this seller.`);if(!confirm(`Delete seller "${x.name}"?`))return;sellers=sellers.filter(y=>y!==x);if(String(editingIdentitySellerId)===String(x.id)){editingIdentitySellerId=null;sellerIdentityForm.reset();btnSaveIdentitySeller.textContent='Save Seller';}saveLocal();renderIdentityTab();});
-    customerHost?.querySelectorAll('[data-customer-delete]').forEach(b=>b.onclick=()=>{const x=customers.find(y=>String(y.customerId)===b.dataset.customerDelete);if(!x)return;const n=customerInvoices(x).length;if(n>0)return alert(`Cannot delete customer "${x.name}": ${n} invoice(s) exist for this customer.`);if(!confirm(`Delete customer "${x.name}"?`))return;customers=customers.filter(y=>y!==x);if(String(editingIdentityCustomerId)===String(x.customerId)){editingIdentityCustomerId=null;customerIdentityForm.reset();btnSaveIdentityCustomer.textContent='Save Customer';}saveLocal();renderIdentityTab();});
+    sellerHost?.querySelectorAll('[data-seller-delete]').forEach(b=>b.onclick=()=>{const x=sellers.find(y=>String(y.id)===b.dataset.sellerDelete);if(!x)return;const n=purchaseHistory.filter(ph=>String(ph.sellerName||'').trim().toLowerCase()===String(x.name||'').trim().toLowerCase()).length;if(n>0)return alert(`Cannot delete seller "${x.name}": ${n} purchase record(s) exist for this seller.`);if(!confirm(`Delete seller "${x.name}"?`))return;logDeletion('Seller',x.id,x.name,`Contact: ${x.contact||''} | Location: ${x.location||''}`,0,x);sellers=sellers.filter(y=>y!==x);if(String(editingIdentitySellerId)===String(x.id)){editingIdentitySellerId=null;sellerIdentityForm.reset();btnSaveIdentitySeller.textContent='Save Seller';}saveLocal();renderIdentityTab();});
+    customerHost?.querySelectorAll('[data-customer-delete]').forEach(b=>b.onclick=()=>{const x=customers.find(y=>String(y.customerId)===b.dataset.customerDelete);if(!x)return;const n=customerInvoices(x).length;if(n>0)return alert(`Cannot delete customer "${x.name}": ${n} invoice(s) exist for this customer.`);if(!confirm(`Delete customer "${x.name}"?`))return;logDeletion('Customer',x.customerId,x.name,`Phone: ${x.phone||''} | Location: ${x.location||''}`,0,x);customers=customers.filter(y=>y!==x);if(String(editingIdentityCustomerId)===String(x.customerId)){editingIdentityCustomerId=null;customerIdentityForm.reset();btnSaveIdentityCustomer.textContent='Save Customer';}saveLocal();renderIdentityTab();});
     if(employeeHost) employeeHost.innerHTML='<table><thead><tr><th>Employee ID</th><th>Employee Name</th><th class="num-align">Contact</th><th>Payment Type</th><th class="num-align">Salary (₹)</th><th>History</th><th>Action</th></tr></thead><tbody>'+employees.map(x=>`<tr><td>${x.id}</td><td>${x.name||''}</td><td class="num-align">${x.phone||''}</td><td>${x.salaryType==='daily'?'Daily':'Monthly'}</td><td class="num-align">${formatINR(x.salary||0)}</td><td><button type="button" data-employee-attendance="${x.id}">View</button></td><td><button type="button" data-employee-edit="${x.id}">Edit</button> <button type="button" data-employee-delete="${x.id}" class="danger-btn">×</button></td></tr>`).join('')+'</tbody></table>';
     document.getElementById('identityCustomerId').value=editingIdentityCustomerId ? (customers.find(x=>String(x.customerId)===String(editingIdentityCustomerId))?.customerId||'') : '';
     document.getElementById('identityEmployeeId').value=editingEmployeeId||'';
@@ -4653,7 +5016,7 @@ button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:11px 15px
     customerHost?.querySelectorAll('[data-customer-history]').forEach(b=>b.onclick=()=>{const x=customers.find(y=>String(y.customerId)===b.dataset.customerHistory);const logs=invoices.filter(inv=>String(inv.customerId||'')===String(x?.customerId)||normalizePhoneKey(inv.customerPhone)===normalizePhoneKey(x?.phone));const itemRows=logs.flatMap(inv=>(inv.items||[]).map(it=>({date:inv.date,id:inv.id,name:it.name,qty:Number(it.qty)||0,cp:Number(it.cp)||0,mrp:Number(it.mrp??it.sp)||0,sp:Number(it.sp)||0})));customerPurchaseHistory.innerHTML='<strong>Sales history — '+(x?.name||'')+'</strong><table><thead><tr><th>Date</th><th>Invoice</th><th>Item</th><th>Qty</th><th>Cost Price</th><th>MRP</th><th>Selling Price</th><th>Total CP</th><th>Total MRP</th><th>Total SP</th></tr></thead><tbody>'+itemRows.map(it=>`<tr><td>${it.date}</td><td>${it.id}</td><td>${it.name}</td><td>${it.qty}</td><td>${formatINR(it.cp)}</td><td>${formatINR(it.mrp)}</td><td>${formatINR(it.sp)}</td><td>${formatINR(it.cp*it.qty)}</td><td>${formatINR(it.mrp*it.qty)}</td><td>${formatINR(it.sp*it.qty)}</td></tr>`).join('')+'</tbody><tfoot><tr><th colspan="3">Total</th><th>'+itemRows.reduce((a,x)=>a+x.qty,0)+'</th><th colspan="3"></th><th>'+formatINR(itemRows.reduce((a,x)=>a+x.cp*x.qty,0))+'</th><th>'+formatINR(itemRows.reduce((a,x)=>a+x.mrp*x.qty,0))+'</th><th>'+formatINR(itemRows.reduce((a,x)=>a+x.sp*x.qty,0))+'</th></tr></tfoot></table>';});
     employeeHost?.querySelectorAll('[data-employee-attendance]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeAttendance);if(!x)return;attendanceDate.value=(new Date()).toISOString().slice(0,10);renderAttendanceEditor();employeeAttendanceHistory.innerHTML='<strong>Attendance history — '+(x.name||'')+'</strong><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>'+(x.attendance||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(a=>`<tr><td>${a.date}</td><td>${a.status}</td></tr>`).join('')+'</tbody></table>';});
     employeeHost?.querySelectorAll('[data-employee-edit]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeEdit);if(!x)return;editingEmployeeId=x.id;identityEmployeeId.value=x.id;identityEmployeeName.value=x.name||'';identityEmployeePhone.value=x.phone||'';identityEmployeeSalary.value=x.salary||0;identityEmployeeSalaryType.value=x.salaryType||'monthly';updateEmployeeRateLabel();employeeIdentityForm.style.display='block';btnSaveIdentityEmployee.textContent='Update Employee';});
-    employeeHost?.querySelectorAll('[data-employee-delete]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeDelete);if(x&&confirm(`Delete employee ${x.name}?`)){employees=employees.filter(y=>y!==x);saveLocal();renderIdentityTab();}});
+    employeeHost?.querySelectorAll('[data-employee-delete]').forEach(b=>b.onclick=()=>{const x=employees.find(y=>String(y.id)===b.dataset.employeeDelete);if(x&&confirm(`Delete employee ${x.name}?`)){logDeletion('Employee',x.id,x.name,`Phone: ${x.phone||''} | ${x.salaryType==='daily'?'Daily':'Monthly'} salary: ${x.salary||0}`,0,x);employees=employees.filter(y=>y!==x);saveLocal();renderIdentityTab();}});
     renderAttendanceView();
   }
   const sellerIdentityForm=document.getElementById('sellerIdentityForm'), customerIdentityForm=document.getElementById('customerIdentityForm'), employeeIdentityForm=document.getElementById('employeeIdentityForm');
